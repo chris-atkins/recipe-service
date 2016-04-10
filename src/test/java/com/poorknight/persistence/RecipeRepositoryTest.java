@@ -1,8 +1,9 @@
 package com.poorknight.persistence;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 
-import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -11,17 +12,17 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.poorknight.domain.Recipe;
 import com.poorknight.mongo.setup.MongoSetupHelper;
 
 @RunWith(JUnit4.class)
 public class RecipeRepositoryTest {
 
 	private static MongoClient mongo;
+	private RecipeRepository recipeRepository;
 
 	@BeforeClass
-	public static void setup() throws Exception {
+	public static void setupMongo() throws Exception {
 		mongo = MongoSetupHelper.startMongoInstance();
 	}
 
@@ -31,24 +32,22 @@ public class RecipeRepositoryTest {
 	}
 
 	@Before
-	public void beforeEach() {
-		final MongoDatabase db = mongo.getDatabase("test");
-		final MongoCollection<Document> col = db.getCollection("testCol");
-		col.insertOne(new Document("hi", "there"));
+	public void setup() {
+		recipeRepository = new RecipeRepository(mongo);
 	}
 
 	@Test
-	public void integrationTestsAreExecuting() throws Exception {
-		System.out.println("HI!");
-		assertTrue(true);
-	}
+	public void simpleSaveAndGetWorks() throws Exception {
+		final Recipe recipe = new Recipe("name", "content");
 
-	@Test
-	public void getDocument() throws Exception {
-		final MongoDatabase db = mongo.getDatabase("test");
-		final MongoCollection<Document> col = db.getCollection("testCol");
-		final Document document = col.find().first();
-		assertTrue(document.get("hi").equals("there"));
-		// assertThat(document.get("hi"), equalTo("there"));
+		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
+		assertThat(savedRecipe.getId(), notNullValue());
+		assertThat(savedRecipe.getName(), equalTo("name"));
+		assertThat(savedRecipe.getContent(), equalTo("content"));
+
+		final Recipe foundRecipe = recipeRepository.findRecipeById(savedRecipe.getId());
+		assertThat(foundRecipe.getId(), equalTo(savedRecipe.getId()));
+		assertThat(foundRecipe.getName(), equalTo("name"));
+		assertThat(foundRecipe.getContent(), equalTo("content"));
 	}
 }
