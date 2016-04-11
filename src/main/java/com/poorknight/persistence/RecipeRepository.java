@@ -60,8 +60,7 @@ public class RecipeRepository {
 	}
 
 	private Document toDocument(final Recipe recipe) {
-		final Document document = new Document("name", recipe.getName()).append("content", recipe.getContent());
-		return document;
+		return new Document("name", recipe.getName()).append("content", recipe.getContent());
 	}
 
 	private Recipe toRecipe(final Document document) {

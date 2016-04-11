@@ -3,8 +3,15 @@ package com.richo.test.dropwizard.api;
 import java.util.List;
 
 import com.poorknight.domain.Recipe;
+import com.poorknight.persistence.RecipeRepository;
 
 public class RecipeResource implements RecipeApi {
+
+	private final RecipeRepository recipeRepository;
+
+	public RecipeResource(final RecipeRepository recipeRepository) {
+		this.recipeRepository = recipeRepository;
+	}
 
 	@Override
 	public List<Recipe> getRecipes(final String searchString) {

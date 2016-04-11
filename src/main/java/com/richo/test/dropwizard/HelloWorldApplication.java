@@ -10,8 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
+import com.poorknight.persistence.RecipeRepository;
 import com.richo.test.dropwizard.api.HelloWorldApi;
 import com.richo.test.dropwizard.api.HelloWorldResource;
+import com.richo.test.dropwizard.api.RecipeApi;
+import com.richo.test.dropwizard.api.RecipeResource;
 import com.richo.test.dropwizard.filter.MyFilter;
 
 import io.dropwizard.Application;
@@ -41,8 +44,14 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 	public void run(final HelloWorldConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
 
-		final MongoClient mongoClient = new com.mongodb.MongoClient("mongodb");
-		final HelloWorldApi resource = new HelloWorldResource(configuration.getTemplate(), configuration.getDefaultName(), mongoClient);
+		String mongoLocation = System.getenv("MONGO_LOCATION");
+		if (mongoLocation == null) {
+			mongoLocation = "mongodb";
+		}
+		System.out.println("mongoLocation: " + mongoLocation);
+		System.out.println("hi");
+
+		final MongoClient mongoClient = new com.mongodb.MongoClient(mongoLocation);
 
 		final TemplateHealthCheck healthCheck = new TemplateHealthCheck(configuration.getTemplate());
 		environment.healthChecks().register("template", healthCheck);
@@ -51,7 +60,12 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
 		environment.admin().addTask(new MyTestTask());
 
+		final HelloWorldApi resource = new HelloWorldResource(configuration.getTemplate(), configuration.getDefaultName(), mongoClient);
 		environment.jersey().register(resource);
+
+		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
+		final RecipeApi recipeResource = new RecipeResource(recipeRepository);
+		environment.jersey().register(recipeResource);
 	}
 
 	private void enableWadl(final Environment environment) {
@@ -59,5 +73,4 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 		props.put("jersey.config.server.wadl.disableWadl", "false");
 		environment.jersey().getResourceConfig().addProperties(props);
 	}
-
 }
