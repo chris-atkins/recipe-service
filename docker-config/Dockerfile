@@ -8,4 +8,5 @@ ADD config.yml config.yml
 
 CMD java -jar recipe-service.jar server config.yml
 
-EXPOSE 8080
+EXPOSE 5555
+EXPOSE 3555
