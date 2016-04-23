@@ -22,11 +22,11 @@ public class RecipeTranslator {
 	}
 
 	public Recipe toDomain(final ApiRecipe apiRecipe) {
-		final RecipeId recipeId = buildRecipeId(apiRecipe.getId());
+		final RecipeId recipeId = recipeIdFor(apiRecipe.getId());
 		return new Recipe(recipeId, apiRecipe.getName(), apiRecipe.getContent());
 	}
 
-	private RecipeId buildRecipeId(final String id) {
+	public RecipeId recipeIdFor(final String id) {
 		return id == null ? null : new RecipeId(id);
 	}
 }

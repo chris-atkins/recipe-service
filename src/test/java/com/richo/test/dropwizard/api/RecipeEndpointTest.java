@@ -60,4 +60,18 @@ public class RecipeEndpointTest {
 		final ApiRecipe results = endpoint.postRecipe(recipe);
 		assertThat(results).isEqualTo(translatedSavedRecipe);
 	}
+
+	@Test
+	public void getRecipe_DelegatesToItsCollaborators() throws Exception {
+		final RecipeId recipeId = new RecipeId("id");
+		final Recipe domainRecipe = new Recipe(recipeId, "name", "content");
+		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content");
+
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.findRecipeById(recipeId)).thenReturn(domainRecipe);
+		when(translator.toApi(domainRecipe)).thenReturn(apiRecipe);
+
+		final ApiRecipe results = endpoint.getRecipe("id");
+		assertThat(results).isEqualTo(apiRecipe);
+	}
 }

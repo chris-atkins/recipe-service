@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.junit.runners.JUnit4;
 
 import com.mongodb.MongoClient;
 import com.poorknight.domain.Recipe;
+import com.poorknight.domain.identities.RecipeId;
 import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.richo.test.dropwizard.api.SearchTag;
 
@@ -60,6 +62,17 @@ public class RecipeRepositoryTest {
 		assertThat(foundRecipe.getId(), equalTo(savedRecipe.getId()));
 		assertThat(foundRecipe.getName(), equalTo("name"));
 		assertThat(foundRecipe.getContent(), equalTo("content"));
+	}
+
+	@Test
+	public void saveNewRecipe_WithAnExistingId_ThrowsException() throws Exception {
+		try {
+			final Recipe recipe = new Recipe(new RecipeId("id"), "name", "content");
+			recipeRepository.saveNewRecipe(recipe);
+			fail("expecting exception");
+		} catch (final RuntimeException e) {
+			assertThat(e.getMessage(), equalTo("Only new recipes can be saved in this way.  There should not be a RecipeId, but one was found: id"));
+		}
 	}
 
 	@Test

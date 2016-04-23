@@ -75,4 +75,14 @@ public class RecipeTranslatorTest {
 		assertThat(translatedRecipe.getName()).isEqualTo(NAME_1);
 		assertThat(translatedRecipe.getContent()).isEqualTo(CONTENT_1);
 	}
+
+	@Test
+	public void recipeIdFor_AnyString_TranslatesCorrectly() throws Exception {
+		assertThat(translator.recipeIdFor(ID_1)).isEqualTo(new RecipeId(ID_1));
+	}
+
+	@Test
+	public void recipeIdFor_Null_ReturnsNull() {
+		assertThat(translator.recipeIdFor(null)).isNull();
+	}
 }

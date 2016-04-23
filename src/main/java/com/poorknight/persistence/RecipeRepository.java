@@ -26,10 +26,18 @@ public class RecipeRepository {
 	}
 
 	public Recipe saveNewRecipe(final Recipe recipe) {
+		throwExceptionIfARecipeIdExists(recipe);
+
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final Document document = toDocument(recipe);
 		collection.insertOne(document);
 		return toRecipe(document);
+	}
+
+	private void throwExceptionIfARecipeIdExists(final Recipe recipe) {
+		if (recipe.getId() != null) {
+			throw new RuntimeException("Only new recipes can be saved in this way.  There should not be a RecipeId, but one was found: " + recipe.getId().getValue());
+		}
 	}
 
 	public Recipe findRecipeById(final RecipeId id) {

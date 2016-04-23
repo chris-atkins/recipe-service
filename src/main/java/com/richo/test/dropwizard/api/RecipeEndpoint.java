@@ -12,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.poorknight.api.ApiRecipe;
 import com.poorknight.domain.Recipe;
+import com.poorknight.domain.identities.RecipeId;
 import com.poorknight.persistence.RecipeRepository;
 
 @Path("/recipe")
@@ -34,19 +35,23 @@ public class RecipeEndpoint {
 	public List<ApiRecipe> getRecipes(final String searchString) {
 		final List<SearchTag> searchTags = recipeSearchStringParser.parseSearchString(searchString);
 		final List<Recipe> allRecipes = recipeRepository.searchRecipes(searchTags);
-		return recipeTranslator.translate(allRecipes);
+		return recipeTranslator.toApi(allRecipes);
 	}
 
 	@POST
 	@Path("/")
-	public Recipe postRecipe(final ApiRecipe recipe) {
-		throw new RuntimeException("implement me");
+	public ApiRecipe postRecipe(final ApiRecipe recipe) {
+		final Recipe recipeToSave = recipeTranslator.toDomain(recipe);
+		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipeToSave);
+		return recipeTranslator.toApi(savedRecipe);
 	}
 
 	@GET
 	@Path("/{id}")
-	public Recipe getRecipe(final String recipeId) {
-		throw new RuntimeException("implement me");
+	public ApiRecipe getRecipe(final String recipeId) {
+		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
+		final Recipe recipe = recipeRepository.findRecipeById(id);
+		return recipeTranslator.toApi(recipe);
 	}
 
 	@DELETE
