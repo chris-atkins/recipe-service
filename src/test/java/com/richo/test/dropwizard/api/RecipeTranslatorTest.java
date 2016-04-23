@@ -30,7 +30,7 @@ public class RecipeTranslatorTest {
 	@Test
 	public void translatesSingleRecipe_FromDomainToApi() throws Exception {
 		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1);
-		final ApiRecipe translatedRecipe = translator.translate(recipe);
+		final ApiRecipe translatedRecipe = translator.toApi(recipe);
 
 		assertThat(translatedRecipe.getId()).isEqualTo(ID_1);
 		assertThat(translatedRecipe.getName()).isEqualTo(NAME_1);
@@ -41,7 +41,7 @@ public class RecipeTranslatorTest {
 	public void translatesMutipleRecipes_FromDomainToApi() throws Exception {
 		final Recipe recipe1 = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1);
 		final Recipe recipe2 = new Recipe(new RecipeId(ID_2), NAME_2, CONTENT_2);
-		final List<ApiRecipe> translatedRecipes = translator.translate(Arrays.asList(recipe1, recipe2));
+		final List<ApiRecipe> translatedRecipes = translator.toApi(Arrays.asList(recipe1, recipe2));
 
 		assertThat(translatedRecipes.size()).isEqualTo(2);
 
@@ -54,5 +54,25 @@ public class RecipeTranslatorTest {
 		assertThat(secondRecipe.getId()).isEqualTo(ID_2);
 		assertThat(secondRecipe.getName()).isEqualTo(NAME_2);
 		assertThat(secondRecipe.getContent()).isEqualTo(CONTENT_2);
+	}
+
+	@Test
+	public void toDomain_WithId_TranslatesCorrectly() throws Exception {
+		final ApiRecipe apiRecipe = new ApiRecipe(ID_1, NAME_1, CONTENT_1);
+		final Recipe translatedRecipe = translator.toDomain(apiRecipe);
+
+		assertThat(translatedRecipe.getId().getValue()).isEqualTo(ID_1);
+		assertThat(translatedRecipe.getName()).isEqualTo(NAME_1);
+		assertThat(translatedRecipe.getContent()).isEqualTo(CONTENT_1);
+	}
+
+	@Test
+	public void toDomain_WithNoId_TranslatesCorrectly() throws Exception {
+		final ApiRecipe apiRecipe = new ApiRecipe(null, NAME_1, CONTENT_1);
+		final Recipe translatedRecipe = translator.toDomain(apiRecipe);
+
+		assertThat(translatedRecipe.getId()).isNull();
+		assertThat(translatedRecipe.getName()).isEqualTo(NAME_1);
+		assertThat(translatedRecipe.getContent()).isEqualTo(CONTENT_1);
 	}
 }

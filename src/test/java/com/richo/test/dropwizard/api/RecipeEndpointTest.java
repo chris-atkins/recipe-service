@@ -14,6 +14,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.poorknight.api.ApiRecipe;
 import com.poorknight.domain.Recipe;
+import com.poorknight.domain.identities.RecipeId;
 import com.poorknight.persistence.RecipeRepository;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -39,9 +40,24 @@ public class RecipeEndpointTest {
 
 		when(recipeSearchStringParser.parseSearchString("search string")).thenReturn(searchTags);
 		when(repository.searchRecipes(searchTags)).thenReturn(recipesFromRepository);
-		when(translator.translate(recipesFromRepository)).thenReturn(translatedRecipes);
+		when(translator.toApi(recipesFromRepository)).thenReturn(translatedRecipes);
 
 		final List<ApiRecipe> results = endpoint.getRecipes("search string");
 		assertThat(results).isSameAs(translatedRecipes);
+	}
+
+	@Test
+	public void postRecipe_DelegatesToItsCollaborators() throws Exception {
+		final ApiRecipe recipe = new ApiRecipe("name", "content");
+		final Recipe translatedRecipe = new Recipe("name", "content");
+		final Recipe savedRecipe = new Recipe(new RecipeId("id"), "name", "content");
+		final ApiRecipe translatedSavedRecipe = new ApiRecipe("id", "name", "content");
+
+		when(translator.toDomain(recipe)).thenReturn(translatedRecipe);
+		when(repository.saveNewRecipe(translatedRecipe)).thenReturn(savedRecipe);
+		when(translator.toApi(savedRecipe)).thenReturn(translatedSavedRecipe);
+
+		final ApiRecipe results = endpoint.postRecipe(recipe);
+		assertThat(results).isEqualTo(translatedSavedRecipe);
 	}
 }

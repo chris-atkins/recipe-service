@@ -41,4 +41,9 @@ public class RecipeId {
 		}
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "RecipeId [value=" + value + "]";
+	}
 }

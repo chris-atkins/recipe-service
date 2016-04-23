@@ -5,18 +5,28 @@ import java.util.List;
 
 import com.poorknight.api.ApiRecipe;
 import com.poorknight.domain.Recipe;
+import com.poorknight.domain.identities.RecipeId;
 
 public class RecipeTranslator {
 
-	public ApiRecipe translate(final Recipe recipe) {
+	public ApiRecipe toApi(final Recipe recipe) {
 		return new ApiRecipe(recipe.getId().getValue(), recipe.getName(), recipe.getContent());
 	}
 
-	public List<ApiRecipe> translate(final List<Recipe> recipesFromRepository) {
+	public List<ApiRecipe> toApi(final List<Recipe> recipesFromRepository) {
 		final List<ApiRecipe> results = new ArrayList<>(recipesFromRepository.size());
 		for (final Recipe recipe : recipesFromRepository) {
-			results.add(translate(recipe));
+			results.add(toApi(recipe));
 		}
 		return results;
+	}
+
+	public Recipe toDomain(final ApiRecipe apiRecipe) {
+		final RecipeId recipeId = buildRecipeId(apiRecipe.getId());
+		return new Recipe(recipeId, apiRecipe.getName(), apiRecipe.getContent());
+	}
+
+	private RecipeId buildRecipeId(final String id) {
+		return id == null ? null : new RecipeId(id);
 	}
 }
