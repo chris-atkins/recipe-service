@@ -29,4 +29,9 @@ public class Recipe {
 	public RecipeId getId() {
 		return this.id;
 	}
+
+	@Override
+	public String toString() {
+		return "Recipe [id=" + id + ", name=" + name + ", content=" + content + "]";
+	}
 }

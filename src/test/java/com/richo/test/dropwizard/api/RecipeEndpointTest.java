@@ -1,6 +1,7 @@
 package com.richo.test.dropwizard.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -73,5 +74,16 @@ public class RecipeEndpointTest {
 
 		final ApiRecipe results = endpoint.getRecipe("id");
 		assertThat(results).isEqualTo(apiRecipe);
+	}
+
+	@Test
+	public void deleteRecipe_DelegatesToItsCollaborators() throws Exception {
+		final RecipeId recipeId = new RecipeId("id");
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+
+		endpoint.deleteRecipe("id");
+
+		verify(repository).deleteRecipe(recipeId);
+
 	}
 }
