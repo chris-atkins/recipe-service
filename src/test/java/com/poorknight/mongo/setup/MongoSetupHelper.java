@@ -1,6 +1,11 @@
 package com.poorknight.mongo.setup;
 
+import org.bson.Document;
+
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.richo.test.dropwizard.MongoSetup;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -21,6 +26,9 @@ public class MongoSetupHelper {
 	private static MongoClient mongo;
 	private static MongodProcess mongod;
 
+	private static final String DB_NAME = "recipe_db";
+	private static final String RECIPE_COLLECTION = "recipe";
+
 	public static MongoClient startMongoInstance() throws Exception {
 		final MongodStarter starter = MongodStarter.getDefaultInstance();
 		final int port = Network.getFreeServerPort();
@@ -32,7 +40,14 @@ public class MongoSetupHelper {
 		mongodExecutable = starter.prepare(mongodConfig);
 		mongod = mongodExecutable.start();
 		mongo = new MongoClient("localhost", port);
+		MongoSetup.setupDatabaseCollections(mongo);
 		return mongo;
+	}
+
+	public static void deleteAllRecipes() {
+		final MongoDatabase database = mongo.getDatabase(DB_NAME);
+		final MongoCollection<Document> collection = database.getCollection(RECIPE_COLLECTION);
+		collection.deleteMany(new Document());
 	}
 
 	public static void cleanupMongo() {

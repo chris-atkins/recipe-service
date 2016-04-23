@@ -11,13 +11,14 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import com.poorknight.domain.Recipe;
 import com.poorknight.domain.identities.RecipeId;
+import com.richo.test.dropwizard.MongoSetup;
+import com.richo.test.dropwizard.api.SearchTag;
 
 public class RecipeRepository {
 
-	private static final String DB_NAME = "recipe_db";
-	private static final String RECIPE_COLLECTION = "recipe";
 	private final MongoClient mongoClient;
 
 	public RecipeRepository(final MongoClient mongoClient) {
@@ -44,6 +45,23 @@ public class RecipeRepository {
 		return toRecipeList(recipeIterator);
 	}
 
+	public List<Recipe> searchRecipes(final List<SearchTag> searchTags) {
+		final MongoCollection<Document> collection = getRecipeCollection();
+		final Bson recipeWithAnyTag = buildQueryForAnyTagFound(searchTags);
+		final MongoCursor<Document> recipeIterator = collection.find(recipeWithAnyTag).iterator();
+		return toRecipeList(recipeIterator);
+	}
+
+	private Bson buildQueryForAnyTagFound(final List<SearchTag> searchTags) {
+		final StringBuilder sb = new StringBuilder();
+		for (final SearchTag tag : searchTags) {
+			sb.append(" ").append(tag.getValue());
+		}
+
+		final Bson anyOfTagsFilter = Filters.text(sb.toString().trim());
+		return anyOfTagsFilter;
+	}
+
 	public void deleteRecipe(final RecipeId id) {
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final Bson idFilter = createFilterOnId(id);
@@ -51,8 +69,8 @@ public class RecipeRepository {
 	}
 
 	private MongoCollection<Document> getRecipeCollection() {
-		final MongoDatabase database = this.mongoClient.getDatabase(DB_NAME);
-		return database.getCollection(RECIPE_COLLECTION);
+		final MongoDatabase database = this.mongoClient.getDatabase(MongoSetup.DB_NAME);
+		return database.getCollection(MongoSetup.RECIPE_COLLECTION);
 	}
 
 	private Bson createFilterOnId(final RecipeId id) {

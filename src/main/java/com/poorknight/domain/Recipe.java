@@ -8,14 +8,14 @@ public class Recipe {
 	private final String name;
 	private final String content;
 
+	public Recipe(final String name, final String content) {
+		this(null, name, content);
+	}
+
 	public Recipe(final RecipeId id, final String name, final String content) {
 		this.id = id;
 		this.name = name;
 		this.content = content;
-	}
-
-	public Recipe(final String name, final String content) {
-		this(null, name, content);
 	}
 
 	public String getName() {

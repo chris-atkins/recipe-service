@@ -5,8 +5,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -17,6 +19,7 @@ import org.junit.runners.JUnit4;
 import com.mongodb.MongoClient;
 import com.poorknight.domain.Recipe;
 import com.poorknight.mongo.setup.MongoSetupHelper;
+import com.richo.test.dropwizard.api.SearchTag;
 
 @RunWith(JUnit4.class)
 public class RecipeRepositoryTest {
@@ -39,8 +42,13 @@ public class RecipeRepositoryTest {
 		recipeRepository = new RecipeRepository(mongo);
 	}
 
+	@After
+	public void tearDown() {
+		MongoSetupHelper.deleteAllRecipes();
+	}
+
 	@Test
-	public void simpleSaveAndGetWorks() throws Exception {
+	public void simpleSaveAndGet_Works() throws Exception {
 		final Recipe recipe = new Recipe("name", "content");
 
 		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
@@ -55,14 +63,12 @@ public class RecipeRepositoryTest {
 	}
 
 	@Test
-	public void queryAllRecipesWorksAsExpected() throws Exception {
+	public void queryAllRecipes_WorksAsExpected() throws Exception {
 		final Recipe recipe1 = new Recipe("queryAllRecipesWorksAsExpected_name1", "queryAllRecipesWorksAsExpected_content1");
 		final Recipe recipe2 = new Recipe("queryAllRecipesWorksAsExpected_name2", "queryAllRecipesWorksAsExpected_content2");
 		final Recipe recipe3 = new Recipe("queryAllRecipesWorksAsExpected_name3", "queryAllRecipesWorksAsExpected_content3");
 
-		recipeRepository.saveNewRecipe(recipe1);
-		recipeRepository.saveNewRecipe(recipe2);
-		recipeRepository.saveNewRecipe(recipe3);
+		saveRecipes(recipe1, recipe2, recipe3);
 
 		final List<Recipe> recipeList = recipeRepository.findAllRecipes();
 
@@ -76,13 +82,77 @@ public class RecipeRepositoryTest {
 		assertThat(foundRecipe3.getContent(), equalTo("queryAllRecipesWorksAsExpected_content3"));
 	}
 
-	private Recipe findRecipeByName(final String nameToFind, final List<Recipe> recipeList) {
-		for (final Recipe recipe : recipeList) {
-			if (recipe.getName().equals(nameToFind)) {
-				return recipe;
-			}
-		}
-		return null;
+	@Test
+	public void searchRecipes_WithSearchTags_FindsByName() {
+		final Recipe recipe1 = new Recipe("searchName1 findMe1", "searchContent1");
+		final Recipe recipe2 = new Recipe("searchName2", "searchContent2 findMe2");
+		final Recipe recipe3 = new Recipe("searchName3", "searchContent3");
+
+		saveRecipes(recipe1, recipe2, recipe3);
+
+		final List<SearchTag> searchTags = Arrays.asList(new SearchTag("findMe1"));
+		final List<Recipe> foundRecipes = recipeRepository.searchRecipes(searchTags);
+
+		assertThat(foundRecipes.size(), equalTo(1));
+		assertThat(foundRecipes.get(0).getName(), equalTo("searchName1 findMe1"));
+	}
+
+	@Test
+	public void searchRecipes_WithSearchTags_FindsByContent() {
+		final Recipe recipe1 = new Recipe("searchName1 findMe1", "searchContent1");
+		final Recipe recipe2 = new Recipe("searchName2", "searchContent2 findMe2");
+		final Recipe recipe3 = new Recipe("searchName3", "searchContent3");
+
+		saveRecipes(recipe1, recipe2, recipe3);
+
+		final List<SearchTag> searchTags = Arrays.asList(new SearchTag("findMe2"));
+		final List<Recipe> foundRecipes = recipeRepository.searchRecipes(searchTags);
+
+		assertThat(foundRecipes.size(), equalTo(1));
+		assertThat(foundRecipes.get(0).getName(), equalTo("searchName2"));
+	}
+
+	@Test
+	public void searchRecipes_WithSearchTags_FindsByBothNameAndContent() {
+		final Recipe recipe1 = new Recipe("searchName1 findMe", "searchContent1");
+		final Recipe recipe2 = new Recipe("searchName2", "searchContent2 findMe");
+		final Recipe recipe3 = new Recipe("searchName3", "searchContent3");
+
+		saveRecipes(recipe1, recipe2, recipe3);
+
+		final List<SearchTag> searchTags = Arrays.asList(new SearchTag("findMe"));
+		final List<Recipe> foundRecipes = recipeRepository.searchRecipes(searchTags);
+
+		final List<Recipe> allRecipes = recipeRepository.findAllRecipes();
+		assertThat(allRecipes.size(), equalTo(3));
+
+		assertThat(foundRecipes.size(), equalTo(2));
+
+		final Recipe foundRecipe1 = findRecipeByName("searchName1 findMe", foundRecipes);
+		assertThat(foundRecipe1.getContent(), equalTo("searchContent1"));
+
+		final Recipe foundRecipe2 = findRecipeByName("searchName2", foundRecipes);
+		assertThat(foundRecipe2.getContent(), equalTo("searchContent2 findMe"));
+	}
+
+	@Test
+	public void searchRecipes_WithMultipleSearchTags_ReturnsAResultIfAnyTagIsFound() {
+		final Recipe recipe1 = new Recipe("searchName1 findMe", "searchContent1");
+		final Recipe recipe2 = new Recipe("searchName2", "searchContent2 findMe");
+		final Recipe recipe3 = new Recipe("searchName3", "searchContent3");
+
+		saveRecipes(recipe1, recipe2, recipe3);
+
+		final List<SearchTag> searchTags = Arrays.asList(new SearchTag("notHere"), new SearchTag("Again"), new SearchTag("findMe"));
+		final List<Recipe> foundRecipes = recipeRepository.searchRecipes(searchTags);
+
+		assertThat(foundRecipes.size(), equalTo(2));
+
+		final Recipe foundRecipe1 = findRecipeByName("searchName1 findMe", foundRecipes);
+		assertThat(foundRecipe1.getContent(), equalTo("searchContent1"));
+
+		final Recipe foundRecipe2 = findRecipeByName("searchName2", foundRecipes);
+		assertThat(foundRecipe2.getContent(), equalTo("searchContent2 findMe"));
 	}
 
 	@Test
@@ -109,5 +179,20 @@ public class RecipeRepositoryTest {
 		assertThat(findRecipeByName("deleteWorks_name1", recipeListAfterDelete), nullValue());
 		assertThat(findRecipeByName("deleteWorks_name2", recipeListAfterDelete), notNullValue());
 		assertThat(findRecipeByName("deleteWorks_name3", recipeListAfterDelete), notNullValue());
+	}
+
+	private void saveRecipes(final Recipe... recipes) {
+		for (final Recipe recipe : recipes) {
+			recipeRepository.saveNewRecipe(recipe);
+		}
+	}
+
+	private Recipe findRecipeByName(final String nameToFind, final List<Recipe> recipeList) {
+		for (final Recipe recipe : recipeList) {
+			if (recipe.getName().equals(nameToFind)) {
+				return recipe;
+			}
+		}
+		return null;
 	}
 }

@@ -13,8 +13,9 @@ import com.mongodb.MongoClient;
 import com.poorknight.persistence.RecipeRepository;
 import com.richo.test.dropwizard.api.HelloWorldApi;
 import com.richo.test.dropwizard.api.HelloWorldResource;
-import com.richo.test.dropwizard.api.RecipeApi;
-import com.richo.test.dropwizard.api.RecipeResource;
+import com.richo.test.dropwizard.api.RecipeEndpoint;
+import com.richo.test.dropwizard.api.RecipeSearchStringParser;
+import com.richo.test.dropwizard.api.RecipeTranslator;
 import com.richo.test.dropwizard.filter.MyFilter;
 
 import io.dropwizard.Application;
@@ -48,10 +49,10 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 		if (mongoLocation == null) {
 			mongoLocation = "mongodb";
 		}
-		System.out.println("mongoLocation: " + mongoLocation);
-		System.out.println("hi");
+		logger.info("Connecting to MongoDB found at: " + mongoLocation);
 
-		final MongoClient mongoClient = new com.mongodb.MongoClient(mongoLocation);
+		final MongoClient mongoClient = new MongoClient(mongoLocation);
+		MongoSetup.setupDatabaseCollections(mongoClient);
 
 		final TemplateHealthCheck healthCheck = new TemplateHealthCheck(configuration.getTemplate());
 		environment.healthChecks().register("template", healthCheck);
@@ -64,8 +65,10 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 		environment.jersey().register(resource);
 
 		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
-		final RecipeApi recipeResource = new RecipeResource(recipeRepository);
-		environment.jersey().register(recipeResource);
+		final RecipeSearchStringParser recipeSearchStringParser = new RecipeSearchStringParser();
+		final RecipeTranslator recipeTranslator = new RecipeTranslator();
+		final RecipeEndpoint recipeEndpoint = new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser);
+		environment.jersey().register(recipeEndpoint);
 	}
 
 	private void enableWadl(final Environment environment) {
