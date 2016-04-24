@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -62,6 +63,20 @@ public class RecipeRepositoryTest {
 		assertThat(foundRecipe.getId(), equalTo(savedRecipe.getId()));
 		assertThat(foundRecipe.getName(), equalTo("name"));
 		assertThat(foundRecipe.getContent(), equalTo("content"));
+	}
+
+	@Test
+	public void getRecipe_WhereNoneExists_ReturnsNull() throws Exception {
+		final String validMongoId = new ObjectId().toHexString();
+		final Recipe recipe = recipeRepository.findRecipeById(new RecipeId(validMongoId));
+		assertThat(recipe, nullValue());
+	}
+
+	@Test
+	public void getRecipe_WithInvalidMongoId_ReturnsNull() throws Exception {
+		final String invalidMongoId = "hi";
+		final Recipe recipe = recipeRepository.findRecipeById(new RecipeId(invalidMongoId));
+		assertThat(recipe, nullValue());
 	}
 
 	@Test

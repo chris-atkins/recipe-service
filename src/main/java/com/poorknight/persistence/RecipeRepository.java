@@ -41,10 +41,18 @@ public class RecipeRepository {
 	}
 
 	public Recipe findRecipeById(final RecipeId id) {
+		if (idIsNotValid(id)) {
+			return null;
+		}
+
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final Bson idFilter = createFilterOnId(id);
 		final Document document = collection.find(idFilter).first();
 		return toRecipe(document);
+	}
+
+	private boolean idIsNotValid(final RecipeId id) {
+		return !ObjectId.isValid(id.getValue());
 	}
 
 	public List<Recipe> findAllRecipes() {
@@ -92,6 +100,10 @@ public class RecipeRepository {
 	}
 
 	private Recipe toRecipe(final Document document) {
+		if (document == null) {
+			return null;
+		}
+
 		final ObjectId id = document.getObjectId("_id");
 		final String name = document.getString("name");
 		final String content = document.getString("content");

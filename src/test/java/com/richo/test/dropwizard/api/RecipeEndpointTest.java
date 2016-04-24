@@ -7,6 +7,8 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 
+import javax.ws.rs.NotFoundException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -86,6 +88,16 @@ public class RecipeEndpointTest {
 
 		final ApiRecipe results = endpoint.getRecipe("id");
 		assertThat(results).isEqualTo(apiRecipe);
+	}
+
+	@Test(expected = NotFoundException.class)
+	public void getRecipe_ThrowsNotFoundException_IfNoRecipeExists() throws Exception {
+		final RecipeId recipeId = new RecipeId("id");
+
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.findRecipeById(recipeId)).thenReturn(null);
+
+		endpoint.getRecipe("id");
 	}
 
 	@Test

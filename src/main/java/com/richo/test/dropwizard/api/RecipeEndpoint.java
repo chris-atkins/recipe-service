@@ -5,6 +5,7 @@ import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -65,6 +66,11 @@ public class RecipeEndpoint {
 	public ApiRecipe getRecipe(@PathParam("id") final String recipeId) {
 		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
 		final Recipe recipe = recipeRepository.findRecipeById(id);
+
+		if (recipe == null) {
+			throw new NotFoundException("No recipe found with id: " + recipeId);
+		}
+
 		return recipeTranslator.toApi(recipe);
 	}
 
