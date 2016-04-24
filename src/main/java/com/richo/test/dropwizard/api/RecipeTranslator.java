@@ -22,8 +22,8 @@ public class RecipeTranslator {
 	}
 
 	public Recipe toDomain(final ApiRecipe apiRecipe) {
-		final RecipeId recipeId = recipeIdFor(apiRecipe.getId());
-		return new Recipe(recipeId, apiRecipe.getName(), apiRecipe.getContent());
+		final RecipeId recipeId = recipeIdFor(apiRecipe.getRecipeId());
+		return new Recipe(recipeId, apiRecipe.getRecipeName(), apiRecipe.getRecipeContent());
 	}
 
 	public RecipeId recipeIdFor(final String id) {

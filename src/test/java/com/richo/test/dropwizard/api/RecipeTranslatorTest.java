@@ -32,9 +32,9 @@ public class RecipeTranslatorTest {
 		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1);
 		final ApiRecipe translatedRecipe = translator.toApi(recipe);
 
-		assertThat(translatedRecipe.getId()).isEqualTo(ID_1);
-		assertThat(translatedRecipe.getName()).isEqualTo(NAME_1);
-		assertThat(translatedRecipe.getContent()).isEqualTo(CONTENT_1);
+		assertThat(translatedRecipe.getRecipeId()).isEqualTo(ID_1);
+		assertThat(translatedRecipe.getRecipeName()).isEqualTo(NAME_1);
+		assertThat(translatedRecipe.getRecipeContent()).isEqualTo(CONTENT_1);
 	}
 
 	@Test
@@ -46,14 +46,14 @@ public class RecipeTranslatorTest {
 		assertThat(translatedRecipes.size()).isEqualTo(2);
 
 		final ApiRecipe firstRecipe = translatedRecipes.get(0);
-		assertThat(firstRecipe.getId()).isEqualTo(ID_1);
-		assertThat(firstRecipe.getName()).isEqualTo(NAME_1);
-		assertThat(firstRecipe.getContent()).isEqualTo(CONTENT_1);
+		assertThat(firstRecipe.getRecipeId()).isEqualTo(ID_1);
+		assertThat(firstRecipe.getRecipeName()).isEqualTo(NAME_1);
+		assertThat(firstRecipe.getRecipeContent()).isEqualTo(CONTENT_1);
 
 		final ApiRecipe secondRecipe = translatedRecipes.get(1);
-		assertThat(secondRecipe.getId()).isEqualTo(ID_2);
-		assertThat(secondRecipe.getName()).isEqualTo(NAME_2);
-		assertThat(secondRecipe.getContent()).isEqualTo(CONTENT_2);
+		assertThat(secondRecipe.getRecipeId()).isEqualTo(ID_2);
+		assertThat(secondRecipe.getRecipeName()).isEqualTo(NAME_2);
+		assertThat(secondRecipe.getRecipeContent()).isEqualTo(CONTENT_2);
 	}
 
 	@Test

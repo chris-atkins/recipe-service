@@ -9,6 +9,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.poorknight.api.ApiRecipe;
@@ -33,7 +34,19 @@ public class RecipeEndpoint {
 
 	@GET
 	@Path("/")
-	public List<ApiRecipe> getRecipes(final String searchString) {
+	public List<ApiRecipe> getRecipes(@QueryParam("searchString") final String searchString) {
+		if (searchString == null) {
+			return findAllRecipes();
+		}
+		return searchRecipes(searchString);
+	}
+
+	private List<ApiRecipe> findAllRecipes() {
+		final List<Recipe> recipes = recipeRepository.findAllRecipes();
+		return recipeTranslator.toApi(recipes);
+	}
+
+	private List<ApiRecipe> searchRecipes(final String searchString) {
 		final List<SearchTag> searchTags = recipeSearchStringParser.parseSearchString(searchString);
 		final List<Recipe> allRecipes = recipeRepository.searchRecipes(searchTags);
 		return recipeTranslator.toApi(allRecipes);

@@ -34,7 +34,19 @@ public class RecipeEndpointTest {
 	private RecipeSearchStringParser recipeSearchStringParser;
 
 	@Test
-	public void getRecipes_DelegatesToItsCollaborators() throws Exception {
+	public void getRecipes_WithNoSearchString_DelegatesToItsCollaborators() throws Exception {
+		final List<Recipe> recipesFromRepository = Collections.singletonList(new Recipe(null, null, null));
+		final List<ApiRecipe> translatedRecipes = Collections.singletonList(new ApiRecipe());
+
+		when(repository.findAllRecipes()).thenReturn(recipesFromRepository);
+		when(translator.toApi(recipesFromRepository)).thenReturn(translatedRecipes);
+
+		final List<ApiRecipe> results = endpoint.getRecipes(null);
+		assertThat(results).isSameAs(translatedRecipes);
+	}
+
+	@Test
+	public void getRecipes_WithSearchString_DelegatesToItsCollaborators() throws Exception {
 		final List<Recipe> recipesFromRepository = Collections.singletonList(new Recipe(null, null, null));
 		final List<ApiRecipe> translatedRecipes = Collections.singletonList(new ApiRecipe());
 		final List<SearchTag> searchTags = Collections.singletonList(new SearchTag(""));
