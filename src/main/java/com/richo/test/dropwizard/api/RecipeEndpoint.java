@@ -26,11 +26,17 @@ public class RecipeEndpoint {
 	private final RecipeRepository recipeRepository;
 	private final RecipeTranslator recipeTranslator;
 	private final RecipeSearchStringParser recipeSearchStringParser;
+	private final TextToHtmlTranformer htmlTransformer;
 
-	public RecipeEndpoint(final RecipeRepository recipeRepository, final RecipeTranslator recipeTranslator, final RecipeSearchStringParser recipeSearchStringParser) {
+	public RecipeEndpoint(final RecipeRepository recipeRepository, //
+			final RecipeTranslator recipeTranslator, //
+			final RecipeSearchStringParser recipeSearchStringParser, //
+			final TextToHtmlTranformer htmlTransformer) {
+
 		this.recipeRepository = recipeRepository;
 		this.recipeTranslator = recipeTranslator;
 		this.recipeSearchStringParser = recipeSearchStringParser;
+		this.htmlTransformer = htmlTransformer;
 	}
 
 	@GET
@@ -56,7 +62,8 @@ public class RecipeEndpoint {
 	@POST
 	@Path("/")
 	public ApiRecipe postRecipe(final ApiRecipe recipe) {
-		final Recipe recipeToSave = recipeTranslator.toDomain(recipe);
+		final Recipe translatedRecipe = recipeTranslator.toDomain(recipe);
+		final Recipe recipeToSave = new Recipe(translatedRecipe.getId(), translatedRecipe.getName(), htmlTransformer.translate(translatedRecipe.getContent()));
 		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipeToSave);
 		return recipeTranslator.toApi(savedRecipe);
 	}

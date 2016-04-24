@@ -16,6 +16,7 @@ import com.richo.test.dropwizard.api.HelloWorldResource;
 import com.richo.test.dropwizard.api.RecipeEndpoint;
 import com.richo.test.dropwizard.api.RecipeSearchStringParser;
 import com.richo.test.dropwizard.api.RecipeTranslator;
+import com.richo.test.dropwizard.api.TextToHtmlTranformer;
 import com.richo.test.dropwizard.filter.MyFilter;
 
 import io.dropwizard.Application;
@@ -67,7 +68,8 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
 		final RecipeSearchStringParser recipeSearchStringParser = new RecipeSearchStringParser();
 		final RecipeTranslator recipeTranslator = new RecipeTranslator();
-		final RecipeEndpoint recipeEndpoint = new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser);
+		final TextToHtmlTranformer textToHtmlTransformer = new TextToHtmlTranformer();
+		final RecipeEndpoint recipeEndpoint = new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser, textToHtmlTransformer);
 		environment.jersey().register(recipeEndpoint);
 	}
 

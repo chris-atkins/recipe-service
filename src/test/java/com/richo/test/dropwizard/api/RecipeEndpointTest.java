@@ -35,6 +35,9 @@ public class RecipeEndpointTest {
 	@Mock
 	private RecipeSearchStringParser recipeSearchStringParser;
 
+	@Mock
+	private TextToHtmlTranformer htmlTransformer;
+
 	@Test
 	public void getRecipes_WithNoSearchString_DelegatesToItsCollaborators() throws Exception {
 		final List<Recipe> recipesFromRepository = Collections.singletonList(new Recipe(null, null, null));
@@ -64,12 +67,14 @@ public class RecipeEndpointTest {
 	@Test
 	public void postRecipe_DelegatesToItsCollaborators() throws Exception {
 		final ApiRecipe recipe = new ApiRecipe("name", "content");
-		final Recipe translatedRecipe = new Recipe("name", "content");
-		final Recipe savedRecipe = new Recipe(new RecipeId("id"), "name", "content");
-		final ApiRecipe translatedSavedRecipe = new ApiRecipe("id", "name", "content");
+		final Recipe translatedRecipe = new Recipe("hi", "content");
+		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe("hi", "htmlified");
+		final Recipe savedRecipe = new Recipe(new RecipeId("id"), "hi", "htmlified");
+		final ApiRecipe translatedSavedRecipe = new ApiRecipe("id", "hi", "htmlified");
 
 		when(translator.toDomain(recipe)).thenReturn(translatedRecipe);
-		when(repository.saveNewRecipe(translatedRecipe)).thenReturn(savedRecipe);
+		when(htmlTransformer.translate("content")).thenReturn("htmlified");
+		when(repository.saveNewRecipe(expectedRecipeAfterHtmlTranslation)).thenReturn(savedRecipe);
 		when(translator.toApi(savedRecipe)).thenReturn(translatedSavedRecipe);
 
 		final ApiRecipe results = endpoint.postRecipe(recipe);
