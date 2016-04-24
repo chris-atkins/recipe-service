@@ -156,7 +156,7 @@ public class RecipeRepositoryTest {
 
 		saveRecipes(recipe1, recipe2, recipe3);
 
-		final List<SearchTag> searchTags = Arrays.asList(new SearchTag("notHere"), new SearchTag("Again"), new SearchTag("findMe"));
+		final List<SearchTag> searchTags = Arrays.asList(new SearchTag("notHere"), new SearchTag("Again"), new SearchTag("FINDme"));
 		final List<Recipe> foundRecipes = recipeRepository.searchRecipes(searchTags);
 
 		assertThat(foundRecipes.size(), equalTo(2));

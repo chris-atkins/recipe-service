@@ -1,56 +1,56 @@
 package com.poorknight.api;
 
 public class ApiRecipe {
-	private String id;
-	private String name;
-	private String content;
+	private String recipeId;
+	private String recipeName;
+	private String recipeContent;
 
 	public ApiRecipe() {
 		this(null, null, null);
 	}
 
-	public ApiRecipe(final String name, final String content) {
-		this(null, name, content);
+	public ApiRecipe(final String recipeName, final String recipeContent) {
+		this(null, recipeName, recipeContent);
 	}
 
-	public ApiRecipe(final String id, final String name, final String content) {
+	public ApiRecipe(final String recipeId, final String recipeName, final String recipeCcontent) {
 		super();
-		this.id = id;
-		this.name = name;
-		this.content = content;
+		this.recipeId = recipeId;
+		this.recipeName = recipeName;
+		this.recipeContent = recipeCcontent;
 	}
 
-	public String getId() {
-		return id;
+	public String getRecipeId() {
+		return recipeId;
 	}
 
-	public void setId(final String id) {
-		this.id = id;
+	public void setRecipeId(final String recipeId) {
+		this.recipeId = recipeId;
 	}
 
-	public String getName() {
-		return name;
+	public String getRecipeName() {
+		return recipeName;
 	}
 
-	public void setName(final String name) {
-		this.name = name;
+	public void setRecipeName(final String recipeName) {
+		this.recipeName = recipeName;
 	}
 
-	public String getContent() {
-		return content;
+	public String getRecipeContent() {
+		return recipeContent;
 	}
 
-	public void setContent(final String content) {
-		this.content = content;
+	public void setRecipeContent(final String recipeContent) {
+		this.recipeContent = recipeContent;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((content == null) ? 0 : content.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((recipeContent == null) ? 0 : recipeContent.hashCode());
+		result = prime * result + ((recipeId == null) ? 0 : recipeId.hashCode());
+		result = prime * result + ((recipeName == null) ? 0 : recipeName.hashCode());
 		return result;
 	}
 
@@ -66,25 +66,25 @@ public class ApiRecipe {
 			return false;
 		}
 		final ApiRecipe other = (ApiRecipe) obj;
-		if (content == null) {
-			if (other.content != null) {
+		if (recipeContent == null) {
+			if (other.recipeContent != null) {
 				return false;
 			}
-		} else if (!content.equals(other.content)) {
+		} else if (!recipeContent.equals(other.recipeContent)) {
 			return false;
 		}
-		if (id == null) {
-			if (other.id != null) {
+		if (recipeId == null) {
+			if (other.recipeId != null) {
 				return false;
 			}
-		} else if (!id.equals(other.id)) {
+		} else if (!recipeId.equals(other.recipeId)) {
 			return false;
 		}
-		if (name == null) {
-			if (other.name != null) {
+		if (recipeName == null) {
+			if (other.recipeName != null) {
 				return false;
 			}
-		} else if (!name.equals(other.name)) {
+		} else if (!recipeName.equals(other.recipeName)) {
 			return false;
 		}
 		return true;
@@ -92,6 +92,6 @@ public class ApiRecipe {
 
 	@Override
 	public String toString() {
-		return "ApiRecipe [id=" + id + ", name=" + name + ", content=" + content + "]";
+		return "ApiRecipe [recipeId=" + recipeId + ", recipeName=" + recipeName + ", recipeContent=" + recipeContent + "]";
 	}
 }
