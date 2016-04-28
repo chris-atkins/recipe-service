@@ -1,5 +1,6 @@
 package com.richo.test.dropwizard;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 import com.poorknight.persistence.RecipeRepository;
 import com.richo.test.dropwizard.api.HelloWorldApi;
 import com.richo.test.dropwizard.api.HelloWorldResource;
@@ -33,7 +36,7 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
 	@Override
 	public String getName() {
-		return "hello-world";
+		return "recipe-connection";
 	}
 
 	@Override
@@ -46,20 +49,12 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 	public void run(final HelloWorldConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
 
-		String mongoLocation = System.getenv("MONGO_LOCATION");
-		if (mongoLocation == null) {
-			mongoLocation = "mongodb";
-		}
-		logger.info("Connecting to MongoDB found at: " + mongoLocation);
-
-		final MongoClient mongoClient = new MongoClient(mongoLocation);
-		MongoSetup.setupDatabaseCollections(mongoClient);
+		final MongoClient mongoClient = connectToDatabase();
 
 		final TemplateHealthCheck healthCheck = new TemplateHealthCheck(configuration.getTemplate());
 		environment.healthChecks().register("template", healthCheck);
 
 		environment.getApplicationContext().addFilter(MyFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
-
 		environment.admin().addTask(new MyTestTask());
 
 		final HelloWorldApi resource = new HelloWorldResource(configuration.getTemplate(), configuration.getDefaultName(), mongoClient);
@@ -71,6 +66,39 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 		final TextToHtmlTranformer textToHtmlTransformer = new TextToHtmlTranformer();
 		final RecipeEndpoint recipeEndpoint = new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser, textToHtmlTransformer);
 		environment.jersey().register(recipeEndpoint);
+	}
+
+	private MongoClient connectToDatabase() {
+		String mongoLocation = System.getenv("MONGO_LOCATION");
+		if (mongoLocation == null) {
+			mongoLocation = "mongodb";
+		}
+
+		final MongoClient mongoClient = connectToDatabase(mongoLocation);
+		MongoSetup.setupDatabaseCollections(mongoClient);
+		return mongoClient;
+	}
+
+	private MongoClient connectToDatabase(final String mongoLocation) {
+		final String user = System.getenv("MONGO_USER");
+		final String password = System.getenv("MONGO_PASSWORD");
+
+		if (user == null && password == null) {
+			return setupNoAuthDatabaseConnection(mongoLocation);
+		}
+		return setupAuthenticatedDatabaseConnection(mongoLocation, user, password);
+	}
+
+	private MongoClient setupNoAuthDatabaseConnection(final String mongoLocation) {
+		logger.info("Connecting with no auth to MongoDB found at: " + mongoLocation);
+		return new MongoClient(mongoLocation);
+	}
+
+	private MongoClient setupAuthenticatedDatabaseConnection(final String mongoLocation, final String user, final String password) {
+		logger.info("Connecting securely to MongoDB found at: " + mongoLocation);
+		final char[] passwordChars = password == null ? null : password.toCharArray();
+		final MongoCredential credential = MongoCredential.createCredential(user, "admin", passwordChars);
+		return new MongoClient(new ServerAddress(mongoLocation), Collections.singletonList(credential));
 	}
 
 	private void enableWadl(final Environment environment) {
