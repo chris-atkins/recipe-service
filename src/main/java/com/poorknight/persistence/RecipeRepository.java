@@ -62,8 +62,6 @@ public class RecipeRepository {
 	}
 
 	public List<Recipe> searchRecipes(final List<SearchTag> searchTags) {
-		System.out.println("searchTags:");
-		System.out.println(searchTags);
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final Bson recipeWithAnyTag = buildQueryForAnyTagFound(searchTags);
 		final MongoCursor<Document> recipeIterator = collection.find(recipeWithAnyTag).iterator();

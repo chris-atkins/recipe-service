@@ -113,6 +113,5 @@ public class RecipeEndpointTest {
 		endpoint.deleteRecipe("id");
 
 		verify(repository).deleteRecipe(recipeId);
-
 	}
 }

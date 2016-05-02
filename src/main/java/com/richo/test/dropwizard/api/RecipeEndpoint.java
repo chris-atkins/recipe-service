@@ -13,6 +13,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.codahale.metrics.annotation.Timed;
 import com.poorknight.api.ApiRecipe;
 import com.poorknight.domain.Recipe;
 import com.poorknight.domain.identities.RecipeId;
@@ -40,6 +41,7 @@ public class RecipeEndpoint {
 	}
 
 	@GET
+	@Timed(name = "getRecipes")
 	@Path("/")
 	public List<ApiRecipe> getRecipes(@QueryParam("searchString") final String searchString) {
 		if (searchString == null) {
@@ -60,6 +62,7 @@ public class RecipeEndpoint {
 	}
 
 	@POST
+	@Timed(name = "postRecipe")
 	@Path("/")
 	public ApiRecipe postRecipe(final ApiRecipe recipe) {
 		final Recipe translatedRecipe = recipeTranslator.toDomain(recipe);
@@ -69,6 +72,7 @@ public class RecipeEndpoint {
 	}
 
 	@GET
+	@Timed(name = "getRecipe")
 	@Path("/{id}")
 	public ApiRecipe getRecipe(@PathParam("id") final String recipeId) {
 		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
@@ -82,6 +86,7 @@ public class RecipeEndpoint {
 	}
 
 	@DELETE
+	@Timed(name = "deleteRecipe")
 	@Path("/{id}")
 	public void deleteRecipe(@PathParam("id") final String recipeId) {
 		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
