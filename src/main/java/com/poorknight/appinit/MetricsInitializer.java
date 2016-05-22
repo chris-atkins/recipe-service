@@ -3,7 +3,6 @@ package com.poorknight.appinit;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.MetricRegistry;
@@ -16,16 +15,15 @@ import io.dropwizard.setup.Bootstrap;
 
 public class MetricsInitializer {
 
-	private final static Logger logger = LoggerFactory.getLogger(MetricsInitializer.class);
-
 	public static void initializeApplicationMetrics(final String metricsUrl, final String metricsPort, final Bootstrap<HelloWorldConfiguration> bootstrap) {
 		if (canNotStartMetrics(metricsUrl, metricsPort)) {
+			LoggerFactory.getLogger(MetricsInitializer.class).info("Unable to start metrics collection - location or port of metrics repository is not defined correctly");
 			return;
 		}
 
 		final StatsDReporter metricsReporter = buildMetricsReporter(metricsUrl, metricsPort, bootstrap.getMetricRegistry());
 		metricsReporter.start(5, TimeUnit.SECONDS);
-		logger.info("Metrics Collection Started.");
+		LoggerFactory.getLogger(MetricsInitializer.class).error("Metrics collection started.");
 	}
 
 	private static StatsDReporter buildMetricsReporter(final String url, final String port, final MetricRegistry metricRegistry) {
