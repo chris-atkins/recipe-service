@@ -20,9 +20,9 @@ import org.junit.runners.JUnit4;
 
 import com.mongodb.MongoClient;
 import com.poorknight.domain.Recipe;
+import com.poorknight.domain.SearchTag;
 import com.poorknight.domain.identities.RecipeId;
 import com.poorknight.mongo.setup.MongoSetupHelper;
-import com.richo.test.dropwizard.api.SearchTag;
 
 @RunWith(JUnit4.class)
 public class RecipeRepositoryTest {
