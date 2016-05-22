@@ -3,6 +3,8 @@ package com.poorknight.appinit;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
@@ -14,6 +16,8 @@ import io.dropwizard.setup.Bootstrap;
 
 public class MetricsInitializer {
 
+	private final static Logger logger = LoggerFactory.getLogger(MetricsInitializer.class);
+
 	public static void initializeApplicationMetrics(final String metricsUrl, final String metricsPort, final Bootstrap<HelloWorldConfiguration> bootstrap) {
 		if (canNotStartMetrics(metricsUrl, metricsPort)) {
 			return;
@@ -21,6 +25,7 @@ public class MetricsInitializer {
 
 		final StatsDReporter metricsReporter = buildMetricsReporter(metricsUrl, metricsPort, bootstrap.getMetricRegistry());
 		metricsReporter.start(5, TimeUnit.SECONDS);
+		logger.info("Metrics Collection Started.");
 	}
 
 	private static StatsDReporter buildMetricsReporter(final String url, final String port, final MetricRegistry metricRegistry) {

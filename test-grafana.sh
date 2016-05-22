@@ -20,7 +20,7 @@ do
     #MY_DATA=`ls /tmp | wc -l`
  
     # Send data to Graphite
-    echo "com.hiitsme.test.dropwizard.api.RecipeEndpoint.postRecipe.p98 0.42 $Date\n" | nc 192.168.99.100 8125
+    echo "com.hiitsme.test.p98:0.42|$DATE" | nc -u -w 1 45.55.61.213 8125
  
     sleep 1
 done
