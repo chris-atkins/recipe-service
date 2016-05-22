@@ -1,26 +1,19 @@
 package com.richo.test.dropwizard;
 
-import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.DispatcherType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.MetricFilter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.graphite.GraphiteReporter;
-import com.codahale.metrics.graphite.PickledGraphite;
-import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
-import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.poorknight.appinit.MetricsInitializer;
 import com.poorknight.persistence.RecipeRepository;
 import com.richo.test.dropwizard.api.HelloWorldApi;
 import com.richo.test.dropwizard.api.HelloWorldResource;
@@ -38,8 +31,6 @@ import io.dropwizard.setup.Environment;
 public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private static final MetricRegistry metrics = new MetricRegistry();
-
 	public static void main(final String[] args) throws Exception {
 		new HelloWorldApplication().run(args);
 	}
@@ -53,7 +44,7 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 	public void initialize(final Bootstrap<HelloWorldConfiguration> bootstrap) {
 		final AssetsBundle assetsBundle = new AssetsBundle("/assets/", "/", "index.html", "static");
 		bootstrap.addBundle(assetsBundle);
-		// startMetricCollection(bootstrap);
+		startMetricCollection(bootstrap);
 	}
 
 	@Override
@@ -119,23 +110,9 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 	}
 
 	private void startMetricCollection(final Bootstrap<HelloWorldConfiguration> bootstrap) {
-		bootstrap.getMetricRegistry().registerAll(new MemoryUsageGaugeSet());
-		bootstrap.getMetricRegistry().registerAll(new GarbageCollectorMetricSet());
+		final String metricsUrl = System.getenv("METRICS_REPOSITORY_LOCATION");
+		final String metricsPort = System.getenv("METRICS_REPOSITORY_PORT");
 
-		final PickledGraphite graphite = new PickledGraphite(new InetSocketAddress("45.55.142.115", 8126));
-		// final Graphite graphite = new Graphite(new InetSocketAddress("45.55.142.115", 8126));
-		final GraphiteReporter reporter = GraphiteReporter.forRegistry(bootstrap.getMetricRegistry()) //
-				.prefixedWith("recipe-service") //
-				.convertRatesTo(TimeUnit.SECONDS) //
-				.convertDurationsTo(TimeUnit.MILLISECONDS) //
-				.filter(MetricFilter.ALL) //
-				.build(graphite);
-		reporter.start(1, TimeUnit.SECONDS);
-
-		// final ConsoleReporter reporter = ConsoleReporter.forRegistry(bootstrap.getMetricRegistry()) //
-		// .convertRatesTo(TimeUnit.SECONDS) //
-		// .convertDurationsTo(TimeUnit.MILLISECONDS) //
-		// .build();
-		// reporter.start(5, TimeUnit.SECONDS);
+		MetricsInitializer.initializeApplicationMetrics(metricsUrl, metricsPort, bootstrap);
 	}
 }

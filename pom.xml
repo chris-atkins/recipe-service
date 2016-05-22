@@ -22,10 +22,12 @@
 		<mongodb.version>3.2.2</mongodb.version>
 		<flapdoodle.mongo.version>1.50.2</flapdoodle.mongo.version>
 		<metrics.version>3.1.2</metrics.version>
+		<metrics.statsd.version>1.0.0</metrics.statsd.version>
 
 		<junit.version>4.12</junit.version>
 		<hamcrest.version>1.3</hamcrest.version>
 		<mockito.version>1.10.19</mockito.version>
+		<powermock.version>1.6.5</powermock.version>
 		<assertj.version>3.4.1</assertj.version>
 	</properties>
 
@@ -56,17 +58,10 @@
 			<version>${metrics.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.dropwizard</groupId>
-			<artifactId>dropwizard-metrics-graphite</artifactId>
-			<version>${dropwizard.version}</version>
+			<groupId>com.github.jjagged</groupId>
+			<artifactId>metrics-statsd</artifactId>
+			<version>${metrics.statsd.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>io.dropwizard.metrics</groupId>
-			<artifactId>metrics-jvm</artifactId>
-			<version>${metrics.version}</version>
-		</dependency>
-
-
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -90,6 +85,18 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 			<version>${assertj.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>${powermock.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
