@@ -12,10 +12,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.poorknight.app.init.MongoSetup;
 import com.poorknight.domain.Recipe;
+import com.poorknight.domain.SearchTag;
 import com.poorknight.domain.identities.RecipeId;
-import com.richo.test.dropwizard.MongoSetup;
-import com.richo.test.dropwizard.api.SearchTag;
 
 public class RecipeRepository {
 
