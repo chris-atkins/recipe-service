@@ -16,10 +16,16 @@ public class MongoSetup {
 	public static void setupDatabaseCollections(final MongoClient client) {
 		final MongoDatabase database = client.getDatabase(MongoSetup.DB_NAME);
 		initializeRecipeCollection(database);
+		initializeUserCollection(database);
 	}
 
 	private static void initializeRecipeCollection(final MongoDatabase database) {
 		final MongoCollection<Document> collection = database.getCollection(MongoSetup.RECIPE_COLLECTION);
 		collection.createIndex(new Document(new ImmutableMap.Builder<String, Object>().put("name", "text").put("content", "text").build()));
+	}
+
+	private static void initializeUserCollection(final MongoDatabase database) {
+		final MongoCollection<Document> collection = database.getCollection(MongoSetup.USER_COLLECTION);
+		collection.createIndex(new Document(new ImmutableMap.Builder<String, Object>().put("email", "text").build()));
 	}
 }
