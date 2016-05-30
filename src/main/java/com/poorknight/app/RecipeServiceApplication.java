@@ -14,13 +14,16 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.poorknight.api.RecipeEndpoint;
+import com.poorknight.api.UserEndpoint;
 import com.poorknight.app.filters.MyFilter;
 import com.poorknight.app.init.MetricsInitializer;
 import com.poorknight.app.init.MongoSetup;
 import com.poorknight.persistence.RecipeRepository;
+import com.poorknight.persistence.UserRepository;
 import com.poorknight.recipe.save.TextToHtmlTranformer;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.transform.api.domain.RecipeTranslator;
+import com.poorknight.transform.api.domain.UserTranslator;
 
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
@@ -53,7 +56,10 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		environment.getApplicationContext().addFilter(MyFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 
 		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(mongoClient);
+		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
+
 		environment.jersey().register(recipeEndpoint);
+		environment.jersey().register(userEndpoint);
 	}
 
 	private RecipeEndpoint initializeRecipeEndpoint(final MongoClient mongoClient) {
@@ -63,6 +69,13 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		final TextToHtmlTranformer textToHtmlTransformer = new TextToHtmlTranformer();
 		final RecipeEndpoint recipeEndpoint = new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser, textToHtmlTransformer);
 		return recipeEndpoint;
+	}
+
+	private UserEndpoint initializeUserEndpoint(final MongoClient mongoClient) {
+		final UserTranslator userTranslator = new UserTranslator();
+		final UserRepository userRepository = new UserRepository(mongoClient, userTranslator);
+		final UserEndpoint userEndpoint = new UserEndpoint(userRepository, userTranslator);
+		return userEndpoint;
 	}
 
 	private MongoClient connectToDatabase() {
