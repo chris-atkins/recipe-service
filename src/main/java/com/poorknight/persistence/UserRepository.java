@@ -35,6 +35,13 @@ public class UserRepository {
 		return toUser(result);
 	}
 
+	public User findUserByEmail(final String email) {
+		final MongoCollection<Document> userCollection = getUserCollection();
+		final Bson filter = Filters.text(email);
+		final Document result = userCollection.find(filter).first();
+		return toUser(result);
+	}
+
 	private Document toDocument(final User user) {
 		return new Document().append("name", user.getName()).append("email", user.getEmail());
 	}

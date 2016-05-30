@@ -54,4 +54,15 @@ public class UserRepositoryTest {
 		assertThat(foundUser.getName()).isEqualTo("name");
 		assertThat(foundUser.getEmail()).isEqualTo("email");
 	}
+
+	@Test
+	public void canFindUserByEmail() throws Exception {
+		final User userToSave = new User("thename", "theBest@EmailEver.com");
+		final User savedUser = userRepository.saveUser(userToSave);
+
+		final User foundUser = userRepository.findUserByEmail("thebest@emailever.com");
+		assertThat(foundUser.getId()).isEqualTo(savedUser.getId());
+		assertThat(foundUser.getEmail()).isEqualTo("theBest@EmailEver.com");
+		assertThat(foundUser.getName()).isEqualTo("thename");
+	}
 }
