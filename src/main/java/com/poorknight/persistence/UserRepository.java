@@ -11,13 +11,16 @@ import com.mongodb.client.model.Filters;
 import com.poorknight.app.init.MongoSetup;
 import com.poorknight.domain.User;
 import com.poorknight.domain.identities.UserId;
+import com.poorknight.transform.api.domain.UserTranslator;
 
 public class UserRepository {
 
 	private final MongoClient mongoClient;
+	private final UserTranslator userTranslator;
 
-	public UserRepository(final MongoClient mongoClient) {
+	public UserRepository(final MongoClient mongoClient, final UserTranslator userTranslator) {
 		this.mongoClient = mongoClient;
+		this.userTranslator = userTranslator;
 	}
 
 	public User saveUser(final User userToSave) {
@@ -37,7 +40,7 @@ public class UserRepository {
 
 	public User findUserByEmail(final String email) {
 		final MongoCollection<Document> userCollection = getUserCollection();
-		final Bson filter = Filters.text(email);
+		final Bson filter = Filters.eq("email", email);
 		final Document result = userCollection.find(filter).first();
 		return toUser(result);
 	}
@@ -47,7 +50,12 @@ public class UserRepository {
 	}
 
 	private User toUser(final Document document) {
-		final UserId id = new UserId(document.getObjectId("_id").toHexString());
+		if (document == null) {
+			return null;
+		}
+
+		final String userIdAsHexString = document.getObjectId("_id").toHexString();
+		final UserId id = userTranslator.userIdFor(userIdAsHexString);
 		final String name = document.getString("name");
 		final String email = document.getString("email");
 

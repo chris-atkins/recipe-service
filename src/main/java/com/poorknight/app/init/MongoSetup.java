@@ -25,7 +25,6 @@ public class MongoSetup {
 	}
 
 	private static void initializeUserCollection(final MongoDatabase database) {
-		final MongoCollection<Document> collection = database.getCollection(MongoSetup.USER_COLLECTION);
-		collection.createIndex(new Document(new ImmutableMap.Builder<String, Object>().put("email", "text").build()));
+		database.getCollection(MongoSetup.USER_COLLECTION);
 	}
 }

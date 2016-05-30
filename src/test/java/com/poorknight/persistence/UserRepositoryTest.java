@@ -13,12 +13,14 @@ import org.junit.runners.JUnit4;
 import com.mongodb.MongoClient;
 import com.poorknight.domain.User;
 import com.poorknight.mongo.setup.MongoSetupHelper;
+import com.poorknight.transform.api.domain.UserTranslator;
 
 @RunWith(JUnit4.class)
 public class UserRepositoryTest {
 
 	private static MongoClient mongo;
 	private UserRepository userRepository;
+	private final UserTranslator userTranslator = new UserTranslator();
 
 	@BeforeClass
 	public static void setupMongo() throws Exception {
@@ -32,7 +34,7 @@ public class UserRepositoryTest {
 
 	@Before
 	public void setup() {
-		userRepository = new UserRepository(mongo);
+		userRepository = new UserRepository(mongo, userTranslator);
 	}
 
 	@After
@@ -60,9 +62,18 @@ public class UserRepositoryTest {
 		final User userToSave = new User("thename", "theBest@EmailEver.com");
 		final User savedUser = userRepository.saveUser(userToSave);
 
-		final User foundUser = userRepository.findUserByEmail("thebest@emailever.com");
+		final User foundUser = userRepository.findUserByEmail("theBest@EmailEver.com");
 		assertThat(foundUser.getId()).isEqualTo(savedUser.getId());
 		assertThat(foundUser.getEmail()).isEqualTo("theBest@EmailEver.com");
 		assertThat(foundUser.getName()).isEqualTo("thename");
+	}
+
+	@Test
+	public void findUserByEmail_IsCaseSensitive() throws Exception {
+		final User userToSave = new User("thename", "theBest@EmailEver.com");
+		userRepository.saveUser(userToSave);
+
+		final User foundUser = userRepository.findUserByEmail("thebest@emailever.com");
+		assertThat(foundUser).isNull();
 	}
 }
