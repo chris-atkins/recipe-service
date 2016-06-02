@@ -5,6 +5,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -12,6 +13,7 @@ import com.poorknight.app.init.MongoSetup;
 import com.poorknight.domain.User;
 import com.poorknight.domain.identities.UserId;
 import com.poorknight.transform.api.domain.UserTranslator;
+import com.poorknight.user.save.NonUniqueEmailException;
 
 public class UserRepository {
 
@@ -23,12 +25,28 @@ public class UserRepository {
 		this.userTranslator = userTranslator;
 	}
 
-	public User saveUser(final User userToSave) {
+	public User saveNewUser(final User userToSave) {
+		try {
+			return saveNewUserWithException(userToSave);
+
+		} catch (final MongoWriteException e) {
+			if (isDuplicateEmailError(e)) {
+				throw new NonUniqueEmailException(userToSave.getEmail());
+			}
+			throw e;
+		}
+	}
+
+	private User saveNewUserWithException(final User userToSave) {
 		final MongoCollection<Document> userCollection = getUserCollection();
 
 		final Document document = toDocument(userToSave);
 		userCollection.insertOne(document);
 		return toUser(document);
+	}
+
+	private boolean isDuplicateEmailError(final MongoWriteException e) {
+		return e.getMessage().contains("duplicate key error") && e.getMessage().contains("email");
 	}
 
 	public User findUserById(final UserId id) {
