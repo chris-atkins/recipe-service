@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
 
 public class MongoSetup {
 
@@ -25,6 +26,7 @@ public class MongoSetup {
 	}
 
 	private static void initializeUserCollection(final MongoDatabase database) {
-		database.getCollection(MongoSetup.USER_COLLECTION);
+		final MongoCollection<Document> userCollection = database.getCollection(MongoSetup.USER_COLLECTION);
+		userCollection.createIndex(new Document("email", 1), new IndexOptions().unique(true));
 	}
 }

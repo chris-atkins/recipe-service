@@ -1,7 +1,10 @@
 package com.poorknight.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
+
+import javax.ws.rs.ForbiddenException;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
@@ -16,6 +19,7 @@ import com.poorknight.domain.User;
 import com.poorknight.domain.identities.UserId;
 import com.poorknight.persistence.UserRepository;
 import com.poorknight.transform.api.domain.UserTranslator;
+import com.poorknight.user.save.NonUniqueEmailException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UserEndpointTest {
@@ -66,12 +70,28 @@ public class UserEndpointTest {
 		when(userTranslator.toDomain(apiUser)).thenReturn(userToSave);
 
 		final User savedUser = Mockito.mock(User.class);
-		when(userRepository.saveUser(userToSave)).thenReturn(savedUser);
+		when(userRepository.saveNewUser(userToSave)).thenReturn(savedUser);
 
 		final ApiUser translatedUser = Mockito.mock(ApiUser.class);
 		when(userTranslator.toApi(savedUser)).thenReturn(translatedUser);
 
 		final ApiUser userFromEndpoint = userEndpoint.postUser(apiUser);
 		assertThat(userFromEndpoint).isEqualTo(translatedUser);
+	}
+
+	@Test
+	public void postUser_ThrowsForbiddenException_WhenRepositoryThrowsNonUniqueEmailException() throws Exception {
+		final ApiUser apiUser = Mockito.mock(ApiUser.class);
+		final User userToSave = Mockito.mock(User.class);
+		when(userTranslator.toDomain(apiUser)).thenReturn(userToSave);
+		when(userRepository.saveNewUser(userToSave)).thenThrow(new NonUniqueEmailException("email@e.com"));
+
+		try {
+			userEndpoint.postUser(apiUser);
+			fail("Expecting exception");
+
+		} catch (final ForbiddenException e) {
+			assertThat(e.getMessage()).isEqualTo("Attempting to save a new user with an email that already exists: email@e.com");
+		}
 	}
 }

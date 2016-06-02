@@ -1,7 +1,12 @@
 package com.poorknight.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import org.bson.BsonDocument;
+import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -9,11 +14,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoWriteException;
+import com.mongodb.ServerAddress;
+import com.mongodb.WriteError;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.poorknight.app.init.MongoSetup;
 import com.poorknight.domain.User;
 import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.transform.api.domain.UserTranslator;
+import com.poorknight.user.save.NonUniqueEmailException;
 
 @RunWith(JUnit4.class)
 public class UserRepositoryTest {
@@ -46,7 +59,7 @@ public class UserRepositoryTest {
 	public void savesAndGetsBasicUser() throws Exception {
 		final User userToSave = new User("name", "email");
 
-		final User savedUser = userRepository.saveUser(userToSave);
+		final User savedUser = userRepository.saveNewUser(userToSave);
 		assertThat(savedUser.getId()).isNotNull();
 		assertThat(savedUser.getName()).isEqualTo("name");
 		assertThat(savedUser.getEmail()).isEqualTo("email");
@@ -60,7 +73,7 @@ public class UserRepositoryTest {
 	@Test
 	public void canFindUserByEmail() throws Exception {
 		final User userToSave = new User("thename", "theBest@EmailEver.com");
-		final User savedUser = userRepository.saveUser(userToSave);
+		final User savedUser = userRepository.saveNewUser(userToSave);
 
 		final User foundUser = userRepository.findUserByEmail("theBest@EmailEver.com");
 		assertThat(foundUser.getId()).isEqualTo(savedUser.getId());
@@ -71,9 +84,48 @@ public class UserRepositoryTest {
 	@Test
 	public void findUserByEmail_IsCaseSensitive() throws Exception {
 		final User userToSave = new User("thename", "theBest@EmailEver.com");
-		userRepository.saveUser(userToSave);
+		userRepository.saveNewUser(userToSave);
 
 		final User foundUser = userRepository.findUserByEmail("thebest@emailever.com");
 		assertThat(foundUser).isNull();
+	}
+
+	@Test
+	public void saveNewUser_WithRepeatEmail_ThrowsException() throws Exception {
+		final User firstUser = new User("anyName", "repeatEmail");
+		final User secondUser = new User("differentName", "repeatEmail");
+
+		userRepository.saveNewUser(firstUser);
+
+		try {
+			userRepository.saveNewUser(secondUser);
+			fail("expecting exception");
+
+		} catch (final NonUniqueEmailException e) {
+			assertThat(e.getMessage()).isEqualTo("Attempting to save a new user with an email that already exists: repeatEmail");
+		}
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void throwsRawException_WithOtherException_NotDueToUniqueEmailViolation() throws Exception {
+		final MongoClient client = mock(MongoClient.class);
+		final MongoDatabase db = mock(MongoDatabase.class);
+		final MongoCollection<Document> collection = mock(MongoCollection.class);
+		when(client.getDatabase(MongoSetup.DB_NAME)).thenReturn(db);
+		when(db.getCollection(MongoSetup.USER_COLLECTION)).thenReturn(collection);
+
+		final UserRepository repository = new UserRepository(client, new UserTranslator());
+
+		final MongoWriteException toBeThrown = new MongoWriteException(new WriteError(11000, "duplicate key error _id", new BsonDocument()), new ServerAddress());
+		Mockito.doThrow(toBeThrown).when(collection).insertOne(Mockito.any(Document.class));
+
+		try {
+			repository.saveNewUser(new User("name", "email"));
+			fail("expecting exception");
+
+		} catch (final Exception e) {
+			assertThat(e).isEqualTo(toBeThrown);
+		}
 	}
 }

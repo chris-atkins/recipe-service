@@ -1,6 +1,7 @@
 package com.poorknight.api;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -14,6 +15,7 @@ import com.poorknight.api.entities.ApiUser;
 import com.poorknight.domain.User;
 import com.poorknight.persistence.UserRepository;
 import com.poorknight.transform.api.domain.UserTranslator;
+import com.poorknight.user.save.NonUniqueEmailException;
 
 @Path("/user")
 @Produces(MediaType.APPLICATION_JSON)
@@ -48,8 +50,16 @@ public class UserEndpoint {
 	@Timed(name = "postUser")
 	@Path("/")
 	public ApiUser postUser(final ApiUser user) {
+		try {
+			return postUserThrowingException(user);
+		} catch (final NonUniqueEmailException e) {
+			throw new ForbiddenException(e.getMessage(), e);
+		}
+	}
+
+	private ApiUser postUserThrowingException(final ApiUser user) {
 		final User userToSave = userTranslator.toDomain(user);
-		final User savedUser = userRepository.saveUser(userToSave);
+		final User savedUser = userRepository.saveNewUser(userToSave);
 		return userTranslator.toApi(savedUser);
 	}
 }
