@@ -14,11 +14,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.poorknight.api.entities.ApiUser;
-import com.poorknight.domain.User;
-import com.poorknight.domain.identities.UserId;
-import com.poorknight.persistence.UserRepository;
-import com.poorknight.transform.api.domain.UserTranslator;
+import com.poorknight.user.ApiUser;
+import com.poorknight.user.User;
+import com.poorknight.user.UserId;
+import com.poorknight.user.UserRepository;
+import com.poorknight.user.UserTranslator;
 import com.poorknight.user.save.NonUniqueEmailException;
 
 @RunWith(MockitoJUnitRunner.class)

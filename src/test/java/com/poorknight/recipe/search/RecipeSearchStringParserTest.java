@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import com.poorknight.domain.SearchTag;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 
 @RunWith(JUnit4.class)

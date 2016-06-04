@@ -1,15 +1,15 @@
 package com.poorknight.mongo.setup;
 
-import static com.poorknight.app.init.MongoSetup.DB_NAME;
-import static com.poorknight.app.init.MongoSetup.RECIPE_COLLECTION;
-import static com.poorknight.app.init.MongoSetup.USER_COLLECTION;
+import static com.poorknight.application.init.MongoSetup.DB_NAME;
 
 import org.bson.Document;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.poorknight.app.init.MongoSetup;
+import com.poorknight.application.init.MongoSetup;
+import com.poorknight.recipe.RecipeCollectionInitializer;
+import com.poorknight.user.UserCollectionInitializer;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -47,13 +47,13 @@ public class MongoSetupHelper {
 
 	public static void deleteAllRecipes() {
 		final MongoDatabase database = mongo.getDatabase(DB_NAME);
-		final MongoCollection<Document> collection = database.getCollection(RECIPE_COLLECTION);
+		final MongoCollection<Document> collection = database.getCollection(RecipeCollectionInitializer.RECIPE_COLLECTION);
 		collection.deleteMany(new Document());
 	}
 
 	public static void deleteAllUsers() {
 		final MongoDatabase database = mongo.getDatabase(DB_NAME);
-		final MongoCollection<Document> collection = database.getCollection(USER_COLLECTION);
+		final MongoCollection<Document> collection = database.getCollection(UserCollectionInitializer.USER_COLLECTION);
 		collection.deleteMany(new Document());
 	}
 
