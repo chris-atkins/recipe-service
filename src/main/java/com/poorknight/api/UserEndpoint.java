@@ -11,10 +11,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.codahale.metrics.annotation.Timed;
-import com.poorknight.api.entities.ApiUser;
-import com.poorknight.domain.User;
-import com.poorknight.persistence.UserRepository;
-import com.poorknight.transform.api.domain.UserTranslator;
+import com.poorknight.user.ApiUser;
+import com.poorknight.user.User;
+import com.poorknight.user.UserRepository;
+import com.poorknight.user.UserTranslator;
 import com.poorknight.user.save.NonUniqueEmailException;
 
 @Path("/user")

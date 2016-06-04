@@ -6,8 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import com.poorknight.domain.SearchTag;
-
 public class RecipeSearchStringParser {
 
 	public List<SearchTag> parseSearchString(final String searchString) {
