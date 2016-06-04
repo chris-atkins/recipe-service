@@ -15,14 +15,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.poorknight.api.entities.ApiRecipe;
-import com.poorknight.domain.Recipe;
-import com.poorknight.domain.SearchTag;
-import com.poorknight.domain.identities.RecipeId;
-import com.poorknight.persistence.RecipeRepository;
+import com.poorknight.recipe.ApiRecipe;
+import com.poorknight.recipe.Recipe;
+import com.poorknight.recipe.RecipeId;
+import com.poorknight.recipe.RecipeRepository;
+import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.save.TextToHtmlTranformer;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
-import com.poorknight.transform.api.domain.RecipeTranslator;
+import com.poorknight.recipe.search.SearchTag;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RecipeEndpointTest {
