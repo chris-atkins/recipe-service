@@ -1,7 +1,5 @@
 package com.poorknight.mongo.setup;
 
-import static com.poorknight.application.init.MongoSetup.DB_NAME;
-
 import org.bson.Document;
 
 import com.mongodb.MongoClient;
@@ -46,13 +44,13 @@ public class MongoSetupHelper {
 	}
 
 	public static void deleteAllRecipes() {
-		final MongoDatabase database = mongo.getDatabase(DB_NAME);
+		final MongoDatabase database = mongo.getDatabase(MongoSetup.DB_NAME);
 		final MongoCollection<Document> collection = database.getCollection(RecipeCollectionInitializer.RECIPE_COLLECTION);
 		collection.deleteMany(new Document());
 	}
 
 	public static void deleteAllUsers() {
-		final MongoDatabase database = mongo.getDatabase(DB_NAME);
+		final MongoDatabase database = mongo.getDatabase(MongoSetup.DB_NAME);
 		final MongoCollection<Document> collection = database.getCollection(UserCollectionInitializer.USER_COLLECTION);
 		collection.deleteMany(new Document());
 	}
