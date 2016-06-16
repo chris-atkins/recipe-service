@@ -88,7 +88,7 @@ public class RecipeRepository {
 	}
 
 	private Bson createFilterOnId(final RecipeId id) {
-		return com.mongodb.client.model.Filters.eq("_id", new ObjectId(id.getValue()));
+		return Filters.eq("_id", new ObjectId(id.getValue()));
 	}
 
 	private Document toDocument(final Recipe recipe) {
