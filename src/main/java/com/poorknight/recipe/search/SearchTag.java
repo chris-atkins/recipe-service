@@ -1,11 +1,13 @@
 package com.poorknight.recipe.search;
 
+import java.util.Locale;
+
 public class SearchTag {
 
 	private final String value;
 
 	public SearchTag(final String value) {
-		this.value = value.toLowerCase();
+		this.value = value.toLowerCase(Locale.US);
 	}
 
 	public String getValue() {
