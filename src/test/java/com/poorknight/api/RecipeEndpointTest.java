@@ -1,7 +1,6 @@
 package com.poorknight.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -118,10 +117,5 @@ public class RecipeEndpointTest {
 		endpoint.deleteRecipe("id");
 
 		verify(repository).deleteRecipe(recipeId);
-	}
-
-	@Test
-	public void testName() throws Exception {
-		assertTrue(false);
 	}
 }
