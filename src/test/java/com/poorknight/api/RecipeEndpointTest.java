@@ -70,16 +70,16 @@ public class RecipeEndpointTest {
 
 	@Test
 	public void postRecipe_DelegatesToItsCollaborators() throws Exception {
-		final ApiRecipe recipe = new ApiRecipe("name", "content");
+		final ApiRecipe recipe = new ApiRecipe("name", "content", null);
 		final Recipe translatedRecipe = new Recipe("hi", "content");
 		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe("hi", "htmlified");
 		final Recipe savedRecipe = new Recipe(new RecipeId("id"), "hi", "htmlified");
-		final ApiRecipe translatedSavedRecipe = new ApiRecipe("id", "hi", "htmlified");
+		final ApiRecipe translatedSavedRecipe = new ApiRecipe("id", "hi", "htmlified", null);
 
 		when(translator.toDomain(recipe)).thenReturn(translatedRecipe);
 		when(htmlTransformer.translate("content")).thenReturn("htmlified");
 		when(repository.saveNewRecipe(expectedRecipeAfterHtmlTranslation)).thenReturn(savedRecipe);
-		when(translator.toApi(savedRecipe)).thenReturn(translatedSavedRecipe);
+		when(translator.toApi(savedRecipe, true)).thenReturn(translatedSavedRecipe);
 
 		final ApiRecipe results = endpoint.postRecipe(recipe);
 		assertThat(results).isEqualTo(translatedSavedRecipe);
@@ -89,11 +89,11 @@ public class RecipeEndpointTest {
 	public void getRecipe_DelegatesToItsCollaborators() throws Exception {
 		final RecipeId recipeId = new RecipeId("id");
 		final Recipe domainRecipe = new Recipe(recipeId, "name", "content");
-		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content");
+		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content", null);
 
 		when(translator.recipeIdFor("id")).thenReturn(recipeId);
 		when(repository.findRecipeById(recipeId)).thenReturn(domainRecipe);
-		when(translator.toApi(domainRecipe)).thenReturn(apiRecipe);
+		when(translator.toApi(domainRecipe, true)).thenReturn(apiRecipe);
 
 		final ApiRecipe results = endpoint.getRecipe("id");
 		assertThat(results).isEqualTo(apiRecipe);

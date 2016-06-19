@@ -10,10 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import com.poorknight.recipe.Recipe;
-import com.poorknight.recipe.RecipeId;
-import com.poorknight.recipe.RecipeTranslator;
-
 @RunWith(JUnit4.class)
 public class RecipeTranslatorTest {
 
@@ -30,11 +26,12 @@ public class RecipeTranslatorTest {
 	@Test
 	public void translatesSingleRecipe_FromDomainToApi() throws Exception {
 		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1);
-		final ApiRecipe translatedRecipe = translator.toApi(recipe);
+		final ApiRecipe translatedRecipe = translator.toApi(recipe, true);
 
 		assertThat(translatedRecipe.getRecipeId()).isEqualTo(ID_1);
 		assertThat(translatedRecipe.getRecipeName()).isEqualTo(NAME_1);
 		assertThat(translatedRecipe.getRecipeContent()).isEqualTo(CONTENT_1);
+		assertThat(translatedRecipe.getEditable()).isEqualTo(true);
 	}
 
 	@Test
@@ -58,7 +55,7 @@ public class RecipeTranslatorTest {
 
 	@Test
 	public void toDomain_WithId_TranslatesCorrectly() throws Exception {
-		final ApiRecipe apiRecipe = new ApiRecipe(ID_1, NAME_1, CONTENT_1);
+		final ApiRecipe apiRecipe = new ApiRecipe(ID_1, NAME_1, CONTENT_1, null);
 		final Recipe translatedRecipe = translator.toDomain(apiRecipe);
 
 		assertThat(translatedRecipe.getId().getValue()).isEqualTo(ID_1);
@@ -68,7 +65,7 @@ public class RecipeTranslatorTest {
 
 	@Test
 	public void toDomain_WithNoId_TranslatesCorrectly() throws Exception {
-		final ApiRecipe apiRecipe = new ApiRecipe(null, NAME_1, CONTENT_1);
+		final ApiRecipe apiRecipe = new ApiRecipe(null, NAME_1, CONTENT_1, true);
 		final Recipe translatedRecipe = translator.toDomain(apiRecipe);
 
 		assertThat(translatedRecipe.getId()).isNull();

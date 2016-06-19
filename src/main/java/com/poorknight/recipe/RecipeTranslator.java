@@ -5,14 +5,14 @@ import java.util.List;
 
 public class RecipeTranslator {
 
-	public ApiRecipe toApi(final Recipe recipe) {
-		return new ApiRecipe(recipe.getId().getValue(), recipe.getName(), recipe.getContent());
+	public ApiRecipe toApi(final Recipe recipe, final boolean editable) {
+		return new ApiRecipe(recipe.getId().getValue(), recipe.getName(), recipe.getContent(), editable);
 	}
 
 	public List<ApiRecipe> toApi(final List<Recipe> recipesFromRepository) {
 		final List<ApiRecipe> results = new ArrayList<>(recipesFromRepository.size());
 		for (final Recipe recipe : recipesFromRepository) {
-			results.add(toApi(recipe));
+			results.add(toApi(recipe, true));
 		}
 		return results;
 	}

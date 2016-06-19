@@ -20,7 +20,6 @@ import org.junit.runners.JUnit4;
 
 import com.mongodb.MongoClient;
 import com.poorknight.mongo.setup.MongoSetupHelper;
-import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.search.SearchTag;
 
 @RunWith(JUnit4.class)

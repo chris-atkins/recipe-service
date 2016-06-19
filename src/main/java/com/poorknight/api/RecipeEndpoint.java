@@ -72,7 +72,7 @@ public class RecipeEndpoint {
 		final Recipe translatedRecipe = recipeTranslator.toDomain(recipe);
 		final Recipe recipeToSave = new Recipe(translatedRecipe.getId(), translatedRecipe.getName(), htmlTransformer.translate(translatedRecipe.getContent()));
 		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipeToSave);
-		return recipeTranslator.toApi(savedRecipe);
+		return recipeTranslator.toApi(savedRecipe, true);
 	}
 
 	@GET
@@ -86,7 +86,7 @@ public class RecipeEndpoint {
 			throw new NotFoundException("No recipe found with id: " + recipeId);
 		}
 
-		return recipeTranslator.toApi(recipe);
+		return recipeTranslator.toApi(recipe, true);
 	}
 
 	@DELETE
