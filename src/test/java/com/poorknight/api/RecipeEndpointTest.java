@@ -1,6 +1,7 @@
 package com.poorknight.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -8,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +19,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.poorknight.recipe.ApiRecipe;
 import com.poorknight.recipe.Recipe;
-import com.poorknight.recipe.RecipeId;
+import com.poorknight.recipe.Recipe.RecipeId;
+import com.poorknight.recipe.Recipe.UserId;
 import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.save.TextToHtmlTranformer;
@@ -44,58 +47,90 @@ public class RecipeEndpointTest {
 
 	@Test
 	public void getRecipes_WithNoSearchString_DelegatesToItsCollaborators() throws Exception {
+		final UserId userId = new UserId("user");
 		final List<Recipe> recipesFromRepository = Collections.singletonList(new Recipe(null, null, null));
 		final List<ApiRecipe> translatedRecipes = Collections.singletonList(new ApiRecipe());
 
+		when(translator.userIdFor("user")).thenReturn(userId);
 		when(repository.findAllRecipes()).thenReturn(recipesFromRepository);
-		when(translator.toApi(recipesFromRepository)).thenReturn(translatedRecipes);
+		when(translator.toApi(recipesFromRepository, userId)).thenReturn(translatedRecipes);
 
-		final List<ApiRecipe> results = endpoint.getRecipes(null);
+		final List<ApiRecipe> results = endpoint.getRecipes(null, "user");
 		assertThat(results).isSameAs(translatedRecipes);
 	}
 
 	@Test
 	public void getRecipes_WithSearchString_DelegatesToItsCollaborators() throws Exception {
+		final UserId userId = new UserId("user");
 		final List<Recipe> recipesFromRepository = Collections.singletonList(new Recipe(null, null, null));
 		final List<ApiRecipe> translatedRecipes = Collections.singletonList(new ApiRecipe());
 		final List<SearchTag> searchTags = Collections.singletonList(new SearchTag(""));
 
+		when(translator.userIdFor("user")).thenReturn(userId);
 		when(recipeSearchStringParser.parseSearchString("search string")).thenReturn(searchTags);
 		when(repository.searchRecipes(searchTags)).thenReturn(recipesFromRepository);
-		when(translator.toApi(recipesFromRepository)).thenReturn(translatedRecipes);
+		when(translator.toApi(recipesFromRepository, new UserId("user"))).thenReturn(translatedRecipes);
 
-		final List<ApiRecipe> results = endpoint.getRecipes("search string");
+		final List<ApiRecipe> results = endpoint.getRecipes("search string", "user");
 		assertThat(results).isSameAs(translatedRecipes);
 	}
 
 	@Test
 	public void postRecipe_DelegatesToItsCollaborators() throws Exception {
-		final ApiRecipe recipe = new ApiRecipe("name", "content", null);
-		final Recipe translatedRecipe = new Recipe("hi", "content");
-		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe("hi", "htmlified");
-		final Recipe savedRecipe = new Recipe(new RecipeId("id"), "hi", "htmlified");
-		final ApiRecipe translatedSavedRecipe = new ApiRecipe("id", "hi", "htmlified", null);
+		final UserId userId = new UserId("user");
+		final ApiRecipe recipe = new ApiRecipe("name", "content", false);
+		final Recipe translatedRecipe = new Recipe("hi", "content", new UserId("user"));
+		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe("hi", "htmlified", new UserId("user"));
+		final Recipe savedRecipe = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
+		final ApiRecipe translatedSavedRecipe = new ApiRecipe("id", "hi", "htmlified", false);
 
-		when(translator.toDomain(recipe)).thenReturn(translatedRecipe);
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.toDomain(recipe, new UserId("user"))).thenReturn(translatedRecipe);
 		when(htmlTransformer.translate("content")).thenReturn("htmlified");
 		when(repository.saveNewRecipe(expectedRecipeAfterHtmlTranslation)).thenReturn(savedRecipe);
-		when(translator.toApi(savedRecipe, true)).thenReturn(translatedSavedRecipe);
+		when(translator.toApi(savedRecipe, userId)).thenReturn(translatedSavedRecipe);
 
-		final ApiRecipe results = endpoint.postRecipe(recipe);
+		final ApiRecipe results = endpoint.postRecipe(recipe, "user");
 		assertThat(results).isEqualTo(translatedSavedRecipe);
+	}
+
+	@Test
+	public void postRecipe_Throws401Exception_WhenNullUserIdIsSpecified() throws Exception {
+		try {
+			final ApiRecipe recipe = new ApiRecipe("id", "hi", "htmlified", false);
+			endpoint.postRecipe(recipe, null);
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getMessage()).isEqualTo("A user id must be in the header to perform this operation.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void postRecipe_Throws401Exception_WhenAnEmptyUserIdIsSpecified() throws Exception {
+		try {
+			final ApiRecipe recipe = new ApiRecipe("id", "hi", "htmlified", false);
+			endpoint.postRecipe(recipe, "");
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getMessage()).isEqualTo("A user id must be in the header to perform this operation.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
 	}
 
 	@Test
 	public void getRecipe_DelegatesToItsCollaborators() throws Exception {
 		final RecipeId recipeId = new RecipeId("id");
-		final Recipe domainRecipe = new Recipe(recipeId, "name", "content");
-		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content", null);
+		final UserId userId = new UserId("user");
+		final Recipe domainRecipe = new Recipe(recipeId, "name", "content", new UserId("user"));
+		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content", false);
 
 		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(translator.userIdFor("user")).thenReturn(userId);
 		when(repository.findRecipeById(recipeId)).thenReturn(domainRecipe);
-		when(translator.toApi(domainRecipe, true)).thenReturn(apiRecipe);
+		when(translator.toApi(domainRecipe, userId)).thenReturn(apiRecipe);
 
-		final ApiRecipe results = endpoint.getRecipe("id");
+		final ApiRecipe results = endpoint.getRecipe("id", "user");
 		assertThat(results).isEqualTo(apiRecipe);
 	}
 
@@ -106,7 +141,7 @@ public class RecipeEndpointTest {
 		when(translator.recipeIdFor("id")).thenReturn(recipeId);
 		when(repository.findRecipeById(recipeId)).thenReturn(null);
 
-		endpoint.getRecipe("id");
+		endpoint.getRecipe("id", "user");
 	}
 
 	@Test
@@ -114,7 +149,7 @@ public class RecipeEndpointTest {
 		final RecipeId recipeId = new RecipeId("id");
 		when(translator.recipeIdFor("id")).thenReturn(recipeId);
 
-		endpoint.deleteRecipe("id");
+		endpoint.deleteRecipe("id", "user");
 
 		verify(repository).deleteRecipe(recipeId);
 	}

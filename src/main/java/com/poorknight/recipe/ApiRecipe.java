@@ -4,17 +4,17 @@ public class ApiRecipe {
 	private String recipeId;
 	private String recipeName;
 	private String recipeContent;
-	private Boolean editable;
+	private boolean editable;
 
 	public ApiRecipe() {
-		this(null, null, null, null);
+		this(null, null, null, false);
 	}
 
-	public ApiRecipe(final String recipeName, final String recipeContent, final Boolean editable) {
+	public ApiRecipe(final String recipeName, final String recipeContent, final boolean editable) {
 		this(null, recipeName, recipeContent, editable);
 	}
 
-	public ApiRecipe(final String recipeId, final String recipeName, final String recipeCcontent, final Boolean editable) {
+	public ApiRecipe(final String recipeId, final String recipeName, final String recipeCcontent, final boolean editable) {
 		super();
 		this.recipeId = recipeId;
 		this.recipeName = recipeName;
@@ -46,11 +46,11 @@ public class ApiRecipe {
 		this.recipeContent = recipeContent;
 	}
 
-	public Boolean getEditable() {
+	public boolean getEditable() {
 		return editable;
 	}
 
-	public void setEditable(final Boolean editable) {
+	public void setEditable(final boolean editable) {
 		this.editable = editable;
 	}
 
@@ -58,7 +58,7 @@ public class ApiRecipe {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((editable == null) ? 0 : editable.hashCode());
+		result = prime * result + (editable ? 1231 : 1237);
 		result = prime * result + ((recipeContent == null) ? 0 : recipeContent.hashCode());
 		result = prime * result + ((recipeId == null) ? 0 : recipeId.hashCode());
 		result = prime * result + ((recipeName == null) ? 0 : recipeName.hashCode());
@@ -77,11 +77,7 @@ public class ApiRecipe {
 			return false;
 		}
 		final ApiRecipe other = (ApiRecipe) obj;
-		if (editable == null) {
-			if (other.editable != null) {
-				return false;
-			}
-		} else if (!editable.equals(other.editable)) {
+		if (editable != other.editable) {
 			return false;
 		}
 		if (recipeContent == null) {
@@ -112,5 +108,4 @@ public class ApiRecipe {
 	public String toString() {
 		return "ApiRecipe [recipeId=" + recipeId + ", recipeName=" + recipeName + ", recipeContent=" + recipeContent + ", editable=" + editable + "]";
 	}
-
 }

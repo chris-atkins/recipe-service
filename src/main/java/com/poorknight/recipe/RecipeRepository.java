@@ -13,6 +13,8 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.poorknight.application.init.MongoSetup;
+import com.poorknight.recipe.Recipe.RecipeId;
+import com.poorknight.recipe.Recipe.UserId;
 import com.poorknight.recipe.search.SearchTag;
 
 public class RecipeRepository {
@@ -92,7 +94,9 @@ public class RecipeRepository {
 	}
 
 	private Document toDocument(final Recipe recipe) {
-		return new Document("name", recipe.getName()).append("content", recipe.getContent());
+		return new Document("name", recipe.getName())//
+				.append("content", recipe.getContent())//
+				.append("owningUserId", recipe.getOwningUserId().getValue());
 	}
 
 	private Recipe toRecipe(final Document document) {
@@ -103,8 +107,9 @@ public class RecipeRepository {
 		final ObjectId id = document.getObjectId("_id");
 		final String name = document.getString("name");
 		final String content = document.getString("content");
+		final String owningUserId = document.getString("owningUserId");
 
-		return new Recipe(new RecipeId(id.toHexString()), name, content);
+		return new Recipe(new RecipeId(id.toHexString()), name, content, new UserId(owningUserId));
 	}
 
 	private List<Recipe> toRecipeList(final MongoCursor<Document> recipeIterator) {
