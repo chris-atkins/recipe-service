@@ -6,6 +6,8 @@ pom.xml.releaseBackup
 pom.xml.versionsBackup
 pom.xml.next
 release.properties
+recipe-service.iml
+.idea
 
 
 ### Java ###
