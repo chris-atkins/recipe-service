@@ -1,20 +1,5 @@
 package com.poorknight.api;
 
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-
 import com.codahale.metrics.annotation.Timed;
 import com.poorknight.recipe.ApiRecipe;
 import com.poorknight.recipe.Recipe;
@@ -25,6 +10,10 @@ import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.save.TextToHtmlTranformer;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipe.search.SearchTag;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Path("/recipe")
 @Produces(MediaType.APPLICATION_JSON)
@@ -69,6 +58,21 @@ public class RecipeEndpoint {
 		return recipeTranslator.toApi(allRecipes, requestingUserId);
 	}
 
+	@GET
+	@Timed(name = "getRecipe")
+	@Path("/{id}")
+	public ApiRecipe getRecipe(@PathParam("id") final String recipeId, @HeaderParam("RequestingUser") final String requestingUserIdString) {
+		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
+		final UserId requestingUserId = recipeTranslator.userIdFor(requestingUserIdString);
+		final Recipe recipe = recipeRepository.findRecipeById(id);
+
+		if (recipe == null) {
+			throw new NotFoundException("No recipe found with id: " + recipeId);
+		}
+
+		return recipeTranslator.toApi(recipe, requestingUserId);
+	}
+
 	@POST
 	@Timed(name = "postRecipe")
 	@Path("/")
@@ -84,19 +88,16 @@ public class RecipeEndpoint {
 		return recipeTranslator.toApi(savedRecipe, requestingUserId);
 	}
 
-	@GET
-	@Timed(name = "getRecipe")
+
+	@PUT
+	@Timed(name = "putRecipe")
 	@Path("/{id}")
-	public ApiRecipe getRecipe(@PathParam("id") final String recipeId, @HeaderParam("RequestingUser") final String requestingUserIdString) {
-		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
-		final UserId requestingUserId = recipeTranslator.userIdFor(requestingUserIdString);
-		final Recipe recipe = recipeRepository.findRecipeById(id);
-
-		if (recipe == null) {
-			throw new NotFoundException("No recipe found with id: " + recipeId);
-		}
-
-		return recipeTranslator.toApi(recipe, requestingUserId);
+	public ApiRecipe putRecipe(final ApiRecipe recipe, @PathParam("id") final String recipeId, @HeaderParam("RequestingUser") final String requestingUserIdString) {
+		UserId requestingUserId = recipeTranslator.userIdFor(requestingUserIdString);
+		final Recipe translatedRecipe = recipeTranslator.toDomain(recipe, requestingUserId);
+		final Recipe recipeToSave = new Recipe(translatedRecipe.getId(), translatedRecipe.getName(), htmlTransformer.translate(translatedRecipe.getContent()), translatedRecipe.getOwningUserId());
+		final Recipe savedRecipe = recipeRepository.updateRecipe(recipeToSave);
+		return recipeTranslator.toApi(savedRecipe, requestingUserId);
 	}
 
 	@DELETE

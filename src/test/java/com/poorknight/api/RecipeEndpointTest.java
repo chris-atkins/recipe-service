@@ -1,22 +1,5 @@
 package com.poorknight.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Collections;
-import java.util.List;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.WebApplicationException;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
 import com.poorknight.recipe.ApiRecipe;
 import com.poorknight.recipe.Recipe;
 import com.poorknight.recipe.Recipe.RecipeId;
@@ -26,6 +9,21 @@ import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.save.TextToHtmlTranformer;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipe.search.SearchTag;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
+import java.util.Collections;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RecipeEndpointTest {
@@ -152,5 +150,24 @@ public class RecipeEndpointTest {
 		endpoint.deleteRecipe("id", "user");
 
 		verify(repository).deleteRecipe(recipeId);
+	}
+
+	@Test
+	public void putRecipe_DelegatesToItsCollaborators() throws Exception {
+		final UserId userId = new UserId("user");
+		final ApiRecipe recipe = new ApiRecipe("id", "name", "content", false);
+		final Recipe translatedRecipe = new Recipe(new RecipeId("id"), "hi", "content", new UserId("user"));
+		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
+		final Recipe updatedRecipe = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
+		final ApiRecipe translatedUpdatedRecipe = new ApiRecipe("id", "hi", "htmlified", false);
+
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.toDomain(recipe, new UserId("user"))).thenReturn(translatedRecipe);
+		when(htmlTransformer.translate("content")).thenReturn("htmlified");
+		when(repository.updateRecipe(expectedRecipeAfterHtmlTranslation)).thenReturn(updatedRecipe);
+		when(translator.toApi(updatedRecipe, userId)).thenReturn(translatedUpdatedRecipe);
+
+		final ApiRecipe results = endpoint.putRecipe(recipe, "id", "user");
+		assertThat(results).isEqualTo(translatedUpdatedRecipe);
 	}
 }

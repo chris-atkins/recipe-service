@@ -1,27 +1,21 @@
 package com.poorknight.recipe;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.bson.types.ObjectId;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
 import com.mongodb.MongoClient;
 import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.recipe.Recipe.RecipeId;
 import com.poorknight.recipe.search.SearchTag;
+import org.assertj.core.api.Assertions;
+import org.bson.types.ObjectId;
+import org.junit.*;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
 public class RecipeRepositoryTest {
@@ -185,6 +179,68 @@ public class RecipeRepositoryTest {
 
 		final Recipe foundRecipe2 = findRecipeByName("searchName2", foundRecipes);
 		assertThat(foundRecipe2.getContent(), equalTo("searchContent2 findMe"));
+	}
+
+	@Test
+	public void updateRecipe_CanChangeNameAndContent() throws Exception {
+		final Recipe recipe = new Recipe("originalName", "originalContent", new Recipe.UserId("userId"));
+		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
+
+		Recipe recipeToUseForUpdate = new Recipe(savedRecipe.getId(), "updatedName", "updatedContent", savedRecipe.getOwningUserId());
+		final Recipe updatedRecipe = recipeRepository.updateRecipe(recipeToUseForUpdate);
+
+		Assertions.assertThat(updatedRecipe.getId()).isEqualTo(savedRecipe.getId());
+		Assertions.assertThat(updatedRecipe.getName()).isEqualTo("updatedName");
+		Assertions.assertThat(updatedRecipe.getContent()).isEqualTo("updatedContent");
+		Assertions.assertThat(updatedRecipe.getOwningUserId()).isEqualTo(savedRecipe.getOwningUserId());
+
+		final Recipe foundRecipe = recipeRepository.findRecipeById(recipeToUseForUpdate.getId());
+		Assertions.assertThat(foundRecipe.getId()).isEqualTo(savedRecipe.getId());
+		Assertions.assertThat(foundRecipe.getName()).isEqualTo("updatedName");
+		Assertions.assertThat(foundRecipe.getContent()).isEqualTo("updatedContent");
+		Assertions.assertThat(foundRecipe.getOwningUserId()).isEqualTo(savedRecipe.getOwningUserId());
+	}
+
+	@Test
+	public void updateRecipe_DoesNotChangeUser() throws Exception {
+		final Recipe recipe = new Recipe("originalName", "originalContent", new Recipe.UserId("userId"));
+		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
+
+		Recipe recipeToUseForUpdate = new Recipe(savedRecipe.getId(), "updatedName", "updatedContent", new Recipe.UserId("newUserId"));
+		final Recipe updatedRecipe = recipeRepository.updateRecipe(recipeToUseForUpdate);
+
+		Assertions.assertThat(updatedRecipe.getId()).isEqualTo(savedRecipe.getId());
+		Assertions.assertThat(updatedRecipe.getName()).isEqualTo("updatedName");
+		Assertions.assertThat(updatedRecipe.getContent()).isEqualTo("updatedContent");
+		Assertions.assertThat(updatedRecipe.getOwningUserId()).isEqualTo(new Recipe.UserId("userId"));
+
+		final Recipe foundRecipe = recipeRepository.findRecipeById(recipeToUseForUpdate.getId());
+		Assertions.assertThat(foundRecipe.getId()).isEqualTo(savedRecipe.getId());
+		Assertions.assertThat(foundRecipe.getName()).isEqualTo("updatedName");
+		Assertions.assertThat(foundRecipe.getContent()).isEqualTo("updatedContent");
+		Assertions.assertThat(foundRecipe.getOwningUserId()).isEqualTo(new Recipe.UserId("userId"));
+	}
+
+	@Test
+	public void updateRecipe_ThrowsException_IfNoRecipeExistsForGivenId() throws Exception {
+		try {
+			final Recipe recipeToUseForUpdate = new Recipe(new RecipeId("576b1d15a7c0a00de7193085"), "originalName", "originalContent", new Recipe.UserId("userId"));
+			recipeRepository.updateRecipe(recipeToUseForUpdate);
+			fail("expected exception");
+		} catch(RuntimeException e) {
+			Assertions.assertThat(e.getMessage()).isEqualTo("Cannot update recipe - no recipe found with id: 576b1d15a7c0a00de7193085");
+		}
+	}
+
+	@Test
+	public void updateRecipe_ThrowsException_IfNoRecipeExistsForMalformedId() throws Exception {
+		try {
+			final Recipe recipeToUseForUpdate = new Recipe(new RecipeId("hi"), "originalName", "originalContent", new Recipe.UserId("userId"));
+			recipeRepository.updateRecipe(recipeToUseForUpdate);
+			fail("expected exception");
+		} catch(RuntimeException e) {
+			Assertions.assertThat(e.getMessage()).isEqualTo("Cannot update recipe - no recipe found with id: hi");
+		}
 	}
 
 	@Test

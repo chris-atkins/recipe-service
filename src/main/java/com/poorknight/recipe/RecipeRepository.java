@@ -1,23 +1,26 @@
 package com.poorknight.recipe;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
-
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import com.poorknight.application.init.MongoSetup;
 import com.poorknight.recipe.Recipe.RecipeId;
 import com.poorknight.recipe.Recipe.UserId;
 import com.poorknight.recipe.search.SearchTag;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class RecipeRepository {
+
+	private static final FindOneAndUpdateOptions UPDATE_OPTIONS = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
 
 	private final MongoClient mongoClient;
 
@@ -29,15 +32,25 @@ public class RecipeRepository {
 		throwExceptionIfARecipeIdExists(recipe);
 
 		final MongoCollection<Document> collection = getRecipeCollection();
-		final Document document = toDocument(recipe);
+		final Document document = toDocumentForSave(recipe);
 		collection.insertOne(document);
 		return toRecipe(document);
 	}
 
-	private void throwExceptionIfARecipeIdExists(final Recipe recipe) {
-		if (recipe.getId() != null) {
-			throw new RuntimeException("Only new recipes can be saved in this way.  There should not be a RecipeId, but one was found: " + recipe.getId().getValue());
-		}
+	public Recipe updateRecipe(Recipe recipeToUpdate) {
+		throwExceptionIfRecipeIdIsInvalid(recipeToUpdate);
+
+		final Document updatedRecipe = performUpdate(recipeToUpdate);
+
+		throwExceptionIfNoUpdateOccurred(recipeToUpdate, updatedRecipe);
+		return toRecipe(updatedRecipe);
+	}
+
+	private Document performUpdate(Recipe recipeToUpdate) {
+		final MongoCollection<Document> collection = getRecipeCollection();
+		final Bson idFilter = createFilterOnId(recipeToUpdate.getId());
+		final Document document = new Document("$set", toDocumentForUpdate(recipeToUpdate));
+		return collection.findOneAndUpdate(idFilter, document, UPDATE_OPTIONS);
 	}
 
 	public Recipe findRecipeById(final RecipeId id) {
@@ -93,10 +106,15 @@ public class RecipeRepository {
 		return Filters.eq("_id", new ObjectId(id.getValue()));
 	}
 
-	private Document toDocument(final Recipe recipe) {
-		return new Document("name", recipe.getName())//
-				.append("content", recipe.getContent())//
+	private Document toDocumentForSave(final Recipe recipe) {
+		return new Document("name", recipe.getName()) //
+				.append("content", recipe.getContent()) //
 				.append("owningUserId", recipe.getOwningUserId().getValue());
+	}
+
+	private Document toDocumentForUpdate(final Recipe recipe) {
+		return new Document("name", recipe.getName()) //
+				.append("content", recipe.getContent());
 	}
 
 	private Recipe toRecipe(final Document document) {
@@ -119,5 +137,27 @@ public class RecipeRepository {
 			recipeList.add(toRecipe(document));
 		}
 		return recipeList;
+	}
+
+	private void throwExceptionIfNoUpdateOccurred(Recipe recipeToUpdate, Document updatedRecipe) {
+		if(updatedRecipe == null) {
+			throwInvalidUpdateRecipeIdException(recipeToUpdate.getId());
+		}
+	}
+
+	private void throwExceptionIfRecipeIdIsInvalid(Recipe recipeToUpdate) {
+		if (idIsNotValid(recipeToUpdate.getId())) {
+			throwInvalidUpdateRecipeIdException(recipeToUpdate.getId());
+		}
+	}
+
+	private void throwInvalidUpdateRecipeIdException(RecipeId id) {
+		throw new RuntimeException("Cannot update recipe - no recipe found with id: " + id.getValue());
+	}
+
+	private void throwExceptionIfARecipeIdExists(final Recipe recipe) {
+		if (recipe.getId() != null) {
+			throw new RuntimeException("Only new recipes can be saved in this way.  There should not be a RecipeId, but one was found: " + recipe.getId().getValue());
+		}
 	}
 }
