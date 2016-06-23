@@ -3,6 +3,7 @@ package com.poorknight.recipe;
 import com.mongodb.MongoClient;
 import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.recipe.Recipe.RecipeId;
+import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
 import com.poorknight.recipe.search.SearchTag;
 import org.assertj.core.api.Assertions;
 import org.bson.types.ObjectId;
@@ -227,7 +228,7 @@ public class RecipeRepositoryTest {
 			final Recipe recipeToUseForUpdate = new Recipe(new RecipeId("576b1d15a7c0a00de7193085"), "originalName", "originalContent", new Recipe.UserId("userId"));
 			recipeRepository.updateRecipe(recipeToUseForUpdate);
 			fail("expected exception");
-		} catch(RuntimeException e) {
+		} catch(NoRecipeExistsForIdException e) {
 			Assertions.assertThat(e.getMessage()).isEqualTo("Cannot update recipe - no recipe found with id: 576b1d15a7c0a00de7193085");
 		}
 	}
@@ -238,7 +239,7 @@ public class RecipeRepositoryTest {
 			final Recipe recipeToUseForUpdate = new Recipe(new RecipeId("hi"), "originalName", "originalContent", new Recipe.UserId("userId"));
 			recipeRepository.updateRecipe(recipeToUseForUpdate);
 			fail("expected exception");
-		} catch(RuntimeException e) {
+		} catch(NoRecipeExistsForIdException e) {
 			Assertions.assertThat(e.getMessage()).isEqualTo("Cannot update recipe - no recipe found with id: hi");
 		}
 	}

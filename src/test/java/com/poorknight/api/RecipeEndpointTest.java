@@ -6,6 +6,7 @@ import com.poorknight.recipe.Recipe.RecipeId;
 import com.poorknight.recipe.Recipe.UserId;
 import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.RecipeTranslator;
+import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
 import com.poorknight.recipe.save.TextToHtmlTranformer;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipe.search.SearchTag;
@@ -155,11 +156,15 @@ public class RecipeEndpointTest {
 	@Test
 	public void putRecipe_DelegatesToItsCollaborators() throws Exception {
 		final UserId userId = new UserId("user");
+		final RecipeId recipeId = new RecipeId("id");
 		final ApiRecipe recipe = new ApiRecipe("id", "name", "content", false);
 		final Recipe translatedRecipe = new Recipe(new RecipeId("id"), "hi", "content", new UserId("user"));
 		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
 		final Recipe updatedRecipe = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
 		final ApiRecipe translatedUpdatedRecipe = new ApiRecipe("id", "hi", "htmlified", false);
+
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.findRecipeById(recipeId)).thenReturn(new Recipe("", "", new UserId("user")));
 
 		when(translator.userIdFor("user")).thenReturn(userId);
 		when(translator.toDomain(recipe, new UserId("user"))).thenReturn(translatedRecipe);
@@ -169,5 +174,73 @@ public class RecipeEndpointTest {
 
 		final ApiRecipe results = endpoint.putRecipe(recipe, "id", "user");
 		assertThat(results).isEqualTo(translatedUpdatedRecipe);
+	}
+
+	@Test
+	public void putRecipe_ThrowsNotFoundException_IfNoRecipeCanBeFoundToUpdate() throws Exception {
+		final RecipeId recipeId = new RecipeId("id");
+		final UserId userId = new UserId("user");
+		final ApiRecipe recipe = new ApiRecipe("id", "name", "content", false);
+		final Recipe translatedRecipe = new Recipe(new RecipeId("id"), "hi", "content", new UserId("user"));
+		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
+
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.findRecipeById(recipeId)).thenReturn(new Recipe("", "", new UserId("user")));
+
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.toDomain(recipe, new UserId("user"))).thenReturn(translatedRecipe);
+		when(htmlTransformer.translate("content")).thenReturn("htmlified");
+		final NoRecipeExistsForIdException repositoryException = new NoRecipeExistsForIdException(recipeId);
+		when(repository.updateRecipe(expectedRecipeAfterHtmlTranslation)).thenThrow(repositoryException);
+
+		try {
+			endpoint.putRecipe(recipe, "id", "user");
+			fail("expected exception");
+		} catch(NotFoundException e) {
+			assertThat(e.getCause()).isEqualTo(repositoryException);
+		}
+	}
+
+	@Test
+	public void putRecipe_Throws401Exception_WhenAnEmptyUserIdIsSpecified() throws Exception {
+		final ApiRecipe recipe = new ApiRecipe("id", "name", "content", false);
+
+		try {
+			endpoint.putRecipe(recipe, "id", "");
+			fail("expected exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getMessage()).isEqualTo("A user id must be in the header to perform this operation.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void putRecipe_Throws401Exception_WhenAnNullUserIdIsSpecified() throws Exception {
+		final ApiRecipe recipe = new ApiRecipe("id", "name", "content", false);
+
+		try {
+			endpoint.putRecipe(recipe, "id", null);
+			fail("expected exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getMessage()).isEqualTo("A user id must be in the header to perform this operation.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void putRecipe_Throws401Exception_WhenADifferentUserRequestsUpdateThanWhoCreatedIt() throws Exception {
+		final RecipeId recipeId = new RecipeId("id");
+		final ApiRecipe recipe = new ApiRecipe("id", "name", "content", false);
+
+		try {
+			when(translator.recipeIdFor("id")).thenReturn(recipeId);
+			when(repository.findRecipeById(recipeId)).thenReturn(new Recipe("", "", new UserId("userId")));
+
+			endpoint.putRecipe(recipe, "id", "otherUserId");
+			fail("expected exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getMessage()).isEqualTo("Only the original creator of a recipe may update it.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
 	}
 }

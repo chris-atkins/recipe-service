@@ -10,6 +10,7 @@ import com.mongodb.client.model.ReturnDocument;
 import com.poorknight.application.init.MongoSetup;
 import com.poorknight.recipe.Recipe.RecipeId;
 import com.poorknight.recipe.Recipe.UserId;
+import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
 import com.poorknight.recipe.search.SearchTag;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -152,7 +153,7 @@ public class RecipeRepository {
 	}
 
 	private void throwInvalidUpdateRecipeIdException(RecipeId id) {
-		throw new RuntimeException("Cannot update recipe - no recipe found with id: " + id.getValue());
+		throw new NoRecipeExistsForIdException(id);
 	}
 
 	private void throwExceptionIfARecipeIdExists(final Recipe recipe) {
