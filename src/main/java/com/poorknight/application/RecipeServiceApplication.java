@@ -1,15 +1,5 @@
 package com.poorknight.application;
 
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.DispatcherType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
@@ -20,15 +10,21 @@ import com.poorknight.application.init.MetricsInitializer;
 import com.poorknight.application.init.MongoSetup;
 import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.RecipeTranslator;
-import com.poorknight.recipe.save.TextToHtmlTranformer;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.user.UserRepository;
 import com.poorknight.user.UserTranslator;
-
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.DispatcherType;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RecipeServiceApplication extends Application<RecipeServiceConfiguration> {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -66,16 +62,13 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
 		final RecipeSearchStringParser recipeSearchStringParser = new RecipeSearchStringParser();
 		final RecipeTranslator recipeTranslator = new RecipeTranslator();
-		final TextToHtmlTranformer textToHtmlTransformer = new TextToHtmlTranformer();
-		final RecipeEndpoint recipeEndpoint = new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser, textToHtmlTransformer);
-		return recipeEndpoint;
+		return new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser);
 	}
 
 	private UserEndpoint initializeUserEndpoint(final MongoClient mongoClient) {
 		final UserTranslator userTranslator = new UserTranslator();
 		final UserRepository userRepository = new UserRepository(mongoClient, userTranslator);
-		final UserEndpoint userEndpoint = new UserEndpoint(userRepository, userTranslator);
-		return userEndpoint;
+		return new UserEndpoint(userRepository, userTranslator);
 	}
 
 	private MongoClient connectToDatabase() {

@@ -8,7 +8,6 @@ import com.poorknight.recipe.Recipe.UserId;
 import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
-import com.poorknight.recipe.save.TextToHtmlTranformer;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipe.search.SearchTag;
 import org.apache.commons.lang3.StringUtils;
@@ -25,17 +24,15 @@ public class RecipeEndpoint {
 	private final RecipeRepository recipeRepository;
 	private final RecipeTranslator recipeTranslator;
 	private final RecipeSearchStringParser recipeSearchStringParser;
-	private final TextToHtmlTranformer htmlTransformer;
 
 	public RecipeEndpoint(final RecipeRepository recipeRepository, //
-			final RecipeTranslator recipeTranslator, //
-			final RecipeSearchStringParser recipeSearchStringParser, //
-			final TextToHtmlTranformer htmlTransformer) {
+						  final RecipeTranslator recipeTranslator, //
+						  final RecipeSearchStringParser recipeSearchStringParser //
+	) {
 
 		this.recipeRepository = recipeRepository;
 		this.recipeTranslator = recipeTranslator;
 		this.recipeSearchStringParser = recipeSearchStringParser;
-		this.htmlTransformer = htmlTransformer;
 	}
 
 	@GET
@@ -84,8 +81,7 @@ public class RecipeEndpoint {
 			throw new WebApplicationException("A user id must be in the header to perform this operation.", 401);
 		}
 
-		final Recipe translatedRecipe = recipeTranslator.toDomain(recipe, requestingUserId);
-		final Recipe recipeToSave = new Recipe(translatedRecipe.getId(), translatedRecipe.getName(), htmlTransformer.translate(translatedRecipe.getContent()), translatedRecipe.getOwningUserId());
+		final Recipe recipeToSave = recipeTranslator.toDomain(recipe, requestingUserId);
 		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipeToSave);
 		return recipeTranslator.toApi(savedRecipe, requestingUserId);
 	}
@@ -116,8 +112,7 @@ public class RecipeEndpoint {
 
 	private ApiRecipe putRecipeThrowingExceptions(ApiRecipe recipe, @HeaderParam("RequestingUser") String requestingUserIdString) {
 		final UserId requestingUserId = recipeTranslator.userIdFor(requestingUserIdString);
-		final Recipe translatedRecipe = recipeTranslator.toDomain(recipe, requestingUserId);
-		final Recipe recipeToSave = new Recipe(translatedRecipe.getId(), translatedRecipe.getName(), htmlTransformer.translate(translatedRecipe.getContent()), translatedRecipe.getOwningUserId());
+		final Recipe recipeToSave = recipeTranslator.toDomain(recipe, requestingUserId);
 		final Recipe savedRecipe = recipeRepository.updateRecipe(recipeToSave);
 		return recipeTranslator.toApi(savedRecipe, requestingUserId);
 	}

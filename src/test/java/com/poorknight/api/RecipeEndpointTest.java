@@ -7,7 +7,6 @@ import com.poorknight.recipe.Recipe.UserId;
 import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
-import com.poorknight.recipe.save.TextToHtmlTranformer;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipe.search.SearchTag;
 import org.junit.Test;
@@ -40,9 +39,6 @@ public class RecipeEndpointTest {
 
 	@Mock
 	private RecipeSearchStringParser recipeSearchStringParser;
-
-	@Mock
-	private TextToHtmlTranformer htmlTransformer;
 
 	@Test
 	public void getRecipes_WithNoSearchString_DelegatesToItsCollaborators() throws Exception {
@@ -79,14 +75,12 @@ public class RecipeEndpointTest {
 		final UserId userId = new UserId("user");
 		final ApiRecipe recipe = new ApiRecipe("name", "content", false);
 		final Recipe translatedRecipe = new Recipe("hi", "content", new UserId("user"));
-		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe("hi", "htmlified", new UserId("user"));
 		final Recipe savedRecipe = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
 		final ApiRecipe translatedSavedRecipe = new ApiRecipe("id", "hi", "htmlified", false);
 
 		when(translator.userIdFor("user")).thenReturn(userId);
 		when(translator.toDomain(recipe, new UserId("user"))).thenReturn(translatedRecipe);
-		when(htmlTransformer.translate("content")).thenReturn("htmlified");
-		when(repository.saveNewRecipe(expectedRecipeAfterHtmlTranslation)).thenReturn(savedRecipe);
+		when(repository.saveNewRecipe(translatedRecipe)).thenReturn(savedRecipe);
 		when(translator.toApi(savedRecipe, userId)).thenReturn(translatedSavedRecipe);
 
 		final ApiRecipe results = endpoint.postRecipe(recipe, "user");
@@ -159,7 +153,6 @@ public class RecipeEndpointTest {
 		final RecipeId recipeId = new RecipeId("id");
 		final ApiRecipe recipe = new ApiRecipe("id", "name", "content", false);
 		final Recipe translatedRecipe = new Recipe(new RecipeId("id"), "hi", "content", new UserId("user"));
-		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
 		final Recipe updatedRecipe = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
 		final ApiRecipe translatedUpdatedRecipe = new ApiRecipe("id", "hi", "htmlified", false);
 
@@ -168,8 +161,7 @@ public class RecipeEndpointTest {
 
 		when(translator.userIdFor("user")).thenReturn(userId);
 		when(translator.toDomain(recipe, new UserId("user"))).thenReturn(translatedRecipe);
-		when(htmlTransformer.translate("content")).thenReturn("htmlified");
-		when(repository.updateRecipe(expectedRecipeAfterHtmlTranslation)).thenReturn(updatedRecipe);
+		when(repository.updateRecipe(translatedRecipe)).thenReturn(updatedRecipe);
 		when(translator.toApi(updatedRecipe, userId)).thenReturn(translatedUpdatedRecipe);
 
 		final ApiRecipe results = endpoint.putRecipe(recipe, "id", "user");
@@ -182,16 +174,14 @@ public class RecipeEndpointTest {
 		final UserId userId = new UserId("user");
 		final ApiRecipe recipe = new ApiRecipe("id", "name", "content", false);
 		final Recipe translatedRecipe = new Recipe(new RecipeId("id"), "hi", "content", new UserId("user"));
-		final Recipe expectedRecipeAfterHtmlTranslation = new Recipe(new RecipeId("id"), "hi", "htmlified", new UserId("user"));
 
 		when(translator.recipeIdFor("id")).thenReturn(recipeId);
 		when(repository.findRecipeById(recipeId)).thenReturn(new Recipe("", "", new UserId("user")));
 
 		when(translator.userIdFor("user")).thenReturn(userId);
 		when(translator.toDomain(recipe, new UserId("user"))).thenReturn(translatedRecipe);
-		when(htmlTransformer.translate("content")).thenReturn("htmlified");
 		final NoRecipeExistsForIdException repositoryException = new NoRecipeExistsForIdException(recipeId);
-		when(repository.updateRecipe(expectedRecipeAfterHtmlTranslation)).thenThrow(repositoryException);
+		when(repository.updateRecipe(translatedRecipe)).thenThrow(repositoryException);
 
 		try {
 			endpoint.putRecipe(recipe, "id", "user");
