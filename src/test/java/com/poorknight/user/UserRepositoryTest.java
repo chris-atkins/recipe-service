@@ -1,21 +1,5 @@
 package com.poorknight.user;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.bson.BsonDocument;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.mockito.Mockito;
-
 import com.mongodb.MongoClient;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
@@ -24,8 +8,18 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.poorknight.application.init.MongoSetup;
 import com.poorknight.mongo.setup.MongoSetupHelper;
-import com.poorknight.user.UserRepository;
 import com.poorknight.user.save.NonUniqueEmailException;
+import org.bson.BsonDocument;
+import org.bson.Document;
+import org.junit.*;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
 public class UserRepositoryTest {

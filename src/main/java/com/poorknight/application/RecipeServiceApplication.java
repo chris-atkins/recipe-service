@@ -3,6 +3,7 @@ package com.poorknight.application;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.poorknight.api.RecipeBookEndpoint;
 import com.poorknight.api.RecipeEndpoint;
 import com.poorknight.api.UserEndpoint;
 import com.poorknight.application.filters.MyFilter;
@@ -53,11 +54,12 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 
 		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(mongoClient);
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
+		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint();
 
 		environment.jersey().register(recipeEndpoint);
 		environment.jersey().register(userEndpoint);
+		environment.jersey().register(recipeBookEndpoint);
 	}
-
 	private RecipeEndpoint initializeRecipeEndpoint(final MongoClient mongoClient) {
 		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
 		final RecipeSearchStringParser recipeSearchStringParser = new RecipeSearchStringParser();
@@ -69,6 +71,10 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		final UserTranslator userTranslator = new UserTranslator();
 		final UserRepository userRepository = new UserRepository(mongoClient, userTranslator);
 		return new UserEndpoint(userRepository, userTranslator);
+	}
+
+	private RecipeBookEndpoint initializeRecipeBookEndpoint() {
+		return new RecipeBookEndpoint();
 	}
 
 	private MongoClient connectToDatabase() {

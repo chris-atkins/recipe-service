@@ -1,15 +1,12 @@
 package com.poorknight.user;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.poorknight.user.User.UserId;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import com.poorknight.user.User;
-import com.poorknight.user.UserId;
-import com.poorknight.user.UserTranslator;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(JUnit4.class)
 public class UserTranslatorTest {

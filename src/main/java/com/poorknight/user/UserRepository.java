@@ -1,16 +1,16 @@
 package com.poorknight.user;
 
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
-
 import com.mongodb.MongoClient;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.poorknight.application.init.MongoSetup;
+import com.poorknight.user.User.UserId;
 import com.poorknight.user.save.NonUniqueEmailException;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 public class UserRepository {
 

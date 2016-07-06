@@ -1,11 +1,11 @@
 package com.poorknight.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import javax.ws.rs.ForbiddenException;
-
+import com.poorknight.user.ApiUser;
+import com.poorknight.user.User;
+import com.poorknight.user.User.UserId;
+import com.poorknight.user.UserRepository;
+import com.poorknight.user.UserTranslator;
+import com.poorknight.user.save.NonUniqueEmailException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,12 +14,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.poorknight.user.ApiUser;
-import com.poorknight.user.User;
-import com.poorknight.user.UserId;
-import com.poorknight.user.UserRepository;
-import com.poorknight.user.UserTranslator;
-import com.poorknight.user.save.NonUniqueEmailException;
+import javax.ws.rs.ForbiddenException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UserEndpointTest {

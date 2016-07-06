@@ -1,5 +1,7 @@
 package com.poorknight.user;
 
+import com.poorknight.user.User.UserId;
+
 public class UserTranslator {
 
 	public UserId userIdFor(final String idValue) {
