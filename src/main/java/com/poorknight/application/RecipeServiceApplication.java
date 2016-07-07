@@ -9,6 +9,7 @@ import com.poorknight.api.UserEndpoint;
 import com.poorknight.application.filters.MyFilter;
 import com.poorknight.application.init.MetricsInitializer;
 import com.poorknight.application.init.MongoSetup;
+import com.poorknight.recipe.RecipeBookToRecipeTranslator;
 import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
@@ -54,19 +55,20 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		final MongoClient mongoClient = connectToDatabase();
 		environment.getApplicationContext().addFilter(MyFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 
-		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(mongoClient);
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
 		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(mongoClient);
+		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(mongoClient, recipeBookEndpoint);
 
 		environment.jersey().register(recipeEndpoint);
 		environment.jersey().register(userEndpoint);
 		environment.jersey().register(recipeBookEndpoint);
 	}
-	private RecipeEndpoint initializeRecipeEndpoint(final MongoClient mongoClient) {
+	private RecipeEndpoint initializeRecipeEndpoint(final MongoClient mongoClient, final RecipeBookEndpoint recipeBookEndpoint) {
 		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
 		final RecipeSearchStringParser recipeSearchStringParser = new RecipeSearchStringParser();
 		final RecipeTranslator recipeTranslator = new RecipeTranslator();
-		return new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser);
+		final RecipeBookToRecipeTranslator recipeBookToRecipeTranslator = new RecipeBookToRecipeTranslator();
+		return new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser, recipeBookEndpoint, recipeBookToRecipeTranslator);
 	}
 
 	private UserEndpoint initializeUserEndpoint(final MongoClient mongoClient) {

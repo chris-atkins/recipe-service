@@ -6,6 +6,7 @@ import com.google.common.base.Objects;
 import java.util.Collections;
 import java.util.List;
 
+@SuppressWarnings("WeakerAccess")
 public class RecipeBook {
 
 	private UserId userId;

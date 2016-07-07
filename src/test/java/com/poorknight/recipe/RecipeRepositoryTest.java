@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -87,6 +88,7 @@ public class RecipeRepositoryTest {
 	}
 
 	@Test
+	@SuppressWarnings("ConstantConditions")
 	public void queryAllRecipes_WorksAsExpected() throws Exception {
 		final Recipe recipe1 = new Recipe("queryAllRecipesWorksAsExpected_name1", "queryAllRecipesWorksAsExpected_content1", new Recipe.UserId("userId1"));
 		final Recipe recipe2 = new Recipe("queryAllRecipesWorksAsExpected_name2", "queryAllRecipesWorksAsExpected_content2", new Recipe.UserId("userId2"));
@@ -110,6 +112,58 @@ public class RecipeRepositoryTest {
 	}
 
 	@Test
+	@SuppressWarnings("ConstantConditions")
+	public void getRecipesById_WorksAsExpected() throws Exception {
+		final Recipe recipe1 = new Recipe("getRecipesById_name1", "content1", new Recipe.UserId("userId1"));
+		final Recipe recipe2 = new Recipe("getRecipesById_name2", "content2", new Recipe.UserId("userId2"));
+		final Recipe recipe3 = new Recipe("getRecipesById_name3", "content3", new Recipe.UserId("userId3"));
+
+		final RecipeId id1 = recipeRepository.saveNewRecipe(recipe1).getId();
+		recipeRepository.saveNewRecipe(recipe2);
+		final RecipeId id3 = recipeRepository.saveNewRecipe(recipe3).getId();
+
+		final List<RecipeId> recipeIdsToFind = Arrays.asList(id1, id3);
+		final List<Recipe> recipeList = recipeRepository.findRecipesWithIds(recipeIdsToFind);
+
+		Assertions.assertThat(recipeList.size()).isEqualTo(2);
+
+		final Recipe foundRecipe1 = findRecipeByName("getRecipesById_name1", recipeList);
+		assertThat(foundRecipe1.getContent(), equalTo("content1"));
+
+		final Recipe foundRecipe2 = findRecipeByName("getRecipesById_name3", recipeList);
+		assertThat(foundRecipe2.getContent(), equalTo("content3"));
+	}
+
+	@Test
+	@SuppressWarnings("ConstantConditions")
+	public void getRecipesById_WithInvalidOrNullOrUnknownIds_JustIgnoresThem() throws Exception {
+		final Recipe recipe1 = new Recipe("getRecipesById_ExtraIds_name1", "content1", new Recipe.UserId("userId1"));
+		final Recipe recipe2 = new Recipe("getRecipesById_ExtraIds_name2", "content2", new Recipe.UserId("userId2"));
+		final Recipe recipe3 = new Recipe("getRecipesById_ExtraIds_name3", "content3", new Recipe.UserId("userId3"));
+
+		final RecipeId id1 = recipeRepository.saveNewRecipe(recipe1).getId();
+		recipeRepository.saveNewRecipe(recipe2);
+		final RecipeId id3 = recipeRepository.saveNewRecipe(recipe3).getId();
+
+		final RecipeId nullId = null;
+		final RecipeId nullValueId = new RecipeId(null);
+		final RecipeId emptyValueId = new RecipeId("");
+		final RecipeId invalidId = new RecipeId("invalid");
+		final RecipeId validUnknownId = new RecipeId(new ObjectId().toHexString());
+
+		final List<RecipeId> recipeIdsToFind = Arrays.asList(id1, id3, nullId, nullValueId, emptyValueId, invalidId, validUnknownId);
+		final List<Recipe> recipeList = recipeRepository.findRecipesWithIds(recipeIdsToFind);
+
+		Assertions.assertThat(recipeList.size()).isEqualTo(2);
+
+		final Recipe foundRecipe1 = findRecipeByName("getRecipesById_ExtraIds_name1", recipeList);
+		assertThat(foundRecipe1.getContent(), equalTo("content1"));
+
+		final Recipe foundRecipe2 = findRecipeByName("getRecipesById_ExtraIds_name3", recipeList);
+		assertThat(foundRecipe2.getContent(), equalTo("content3"));
+	}
+
+	@Test
 	public void searchRecipes_WithSearchTags_FindsByName() {
 		final Recipe recipe1 = new Recipe("searchName1 findMe1", "searchContent1", new Recipe.UserId("userId"));
 		final Recipe recipe2 = new Recipe("searchName2", "searchContent2 findMe2", new Recipe.UserId("userId"));
@@ -117,7 +171,7 @@ public class RecipeRepositoryTest {
 
 		saveRecipes(recipe1, recipe2, recipe3);
 
-		final List<SearchTag> searchTags = Arrays.asList(new SearchTag("findMe1"));
+		final List<SearchTag> searchTags = Collections.singletonList(new SearchTag("findMe1"));
 		final List<Recipe> foundRecipes = recipeRepository.searchRecipes(searchTags);
 
 		assertThat(foundRecipes.size(), equalTo(1));
@@ -132,7 +186,7 @@ public class RecipeRepositoryTest {
 
 		saveRecipes(recipe1, recipe2, recipe3);
 
-		final List<SearchTag> searchTags = Arrays.asList(new SearchTag("findMe2"));
+		final List<SearchTag> searchTags = Collections.singletonList(new SearchTag("findMe2"));
 		final List<Recipe> foundRecipes = recipeRepository.searchRecipes(searchTags);
 
 		assertThat(foundRecipes.size(), equalTo(1));
@@ -140,6 +194,7 @@ public class RecipeRepositoryTest {
 	}
 
 	@Test
+	@SuppressWarnings("ConstantConditions")
 	public void searchRecipes_WithSearchTags_FindsByBothNameAndContent() {
 		final Recipe recipe1 = new Recipe("searchName1 findMe", "searchContent1", new Recipe.UserId("userId"));
 		final Recipe recipe2 = new Recipe("searchName2", "searchContent2 findMe", new Recipe.UserId("userId"));
@@ -147,7 +202,7 @@ public class RecipeRepositoryTest {
 
 		saveRecipes(recipe1, recipe2, recipe3);
 
-		final List<SearchTag> searchTags = Arrays.asList(new SearchTag("findMe"));
+		final List<SearchTag> searchTags = Collections.singletonList(new SearchTag("findMe"));
 		final List<Recipe> foundRecipes = recipeRepository.searchRecipes(searchTags);
 
 		final List<Recipe> allRecipes = recipeRepository.findAllRecipes();
@@ -163,6 +218,7 @@ public class RecipeRepositoryTest {
 	}
 
 	@Test
+	@SuppressWarnings("ConstantConditions")
 	public void searchRecipes_WithMultipleSearchTags_ReturnsAResultIfAnyTagIsFound() {
 		final Recipe recipe1 = new Recipe("searchName1 findMe", "searchContent1", new Recipe.UserId("userId"));
 		final Recipe recipe2 = new Recipe("searchName2", "searchContent2 findMe", new Recipe.UserId("userId"));

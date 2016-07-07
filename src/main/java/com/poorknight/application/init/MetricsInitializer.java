@@ -1,17 +1,15 @@
 package com.poorknight.application.init;
 
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.LoggerFactory;
-
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.github.jjagged.metrics.reporting.StatsDReporter;
 import com.poorknight.application.RecipeServiceConfiguration;
-
 import io.dropwizard.setup.Bootstrap;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 public class MetricsInitializer {
 
@@ -29,12 +27,11 @@ public class MetricsInitializer {
 	private static StatsDReporter buildMetricsReporter(final String url, final String port, final MetricRegistry metricRegistry) {
 		registerApplicationMetrics(metricRegistry);
 
-		final StatsDReporter statsDReporter = StatsDReporter.forRegistry(metricRegistry) //
+		return StatsDReporter.forRegistry(metricRegistry) //
 				.prefixedWith("recipe-service") //
 				.convertDurationsTo(TimeUnit.MILLISECONDS) //
 				.convertRatesTo(TimeUnit.SECONDS) //
 				.build(url, Integer.parseInt(port));
-		return statsDReporter;
 	}
 
 	private static void registerApplicationMetrics(final MetricRegistry metricRegistry) {

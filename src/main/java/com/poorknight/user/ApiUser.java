@@ -1,5 +1,6 @@
 package com.poorknight.user;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class ApiUser {
 
 	private String userId;

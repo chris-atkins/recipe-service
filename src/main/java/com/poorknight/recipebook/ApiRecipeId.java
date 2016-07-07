@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+@SuppressWarnings("unused")
 public class ApiRecipeId {
 
 	private String recipeId;

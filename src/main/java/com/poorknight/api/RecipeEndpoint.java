@@ -1,15 +1,13 @@
 package com.poorknight.api;
 
 import com.codahale.metrics.annotation.Timed;
-import com.poorknight.recipe.ApiRecipe;
-import com.poorknight.recipe.Recipe;
+import com.poorknight.recipe.*;
 import com.poorknight.recipe.Recipe.RecipeId;
 import com.poorknight.recipe.Recipe.UserId;
-import com.poorknight.recipe.RecipeRepository;
-import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipe.search.SearchTag;
+import com.poorknight.recipebook.ApiRecipeId;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.*;
@@ -24,37 +22,60 @@ public class RecipeEndpoint {
 	private final RecipeRepository recipeRepository;
 	private final RecipeTranslator recipeTranslator;
 	private final RecipeSearchStringParser recipeSearchStringParser;
+	private RecipeBookEndpoint recipeBookEndpoint;
+	private RecipeBookToRecipeTranslator recipeBookToRecipeTranslator;
 
-	public RecipeEndpoint(final RecipeRepository recipeRepository, //
-						  final RecipeTranslator recipeTranslator, //
-						  final RecipeSearchStringParser recipeSearchStringParser //
-	) {
+	public RecipeEndpoint(final RecipeRepository recipeRepository,
+						  final RecipeTranslator recipeTranslator,
+						  final RecipeSearchStringParser recipeSearchStringParser,
+						  final RecipeBookEndpoint recipeBookEndpoint,
+						  final RecipeBookToRecipeTranslator recipeBookToRecipeTranslator) {
 
 		this.recipeRepository = recipeRepository;
 		this.recipeTranslator = recipeTranslator;
 		this.recipeSearchStringParser = recipeSearchStringParser;
+		this.recipeBookEndpoint = recipeBookEndpoint;
+		this.recipeBookToRecipeTranslator = recipeBookToRecipeTranslator;
 	}
 
 	@GET
 	@Timed(name = "getRecipes")
 	@Path("/")
-	public List<ApiRecipe> getRecipes(@QueryParam("searchString") final String searchString, @HeaderParam("RequestingUser") final String requestingUserIdString) {
+	public List<ApiRecipe> getRecipes(@QueryParam("searchString") final String searchString,
+									  @QueryParam("recipeBook") final String recipeBookUserId,
+									  @HeaderParam("RequestingUser") final String requestingUserIdString) {
 		final UserId requestingUserId = recipeTranslator.userIdFor(requestingUserIdString);
-		if (searchString == null) {
-			return findAllRecipes(requestingUserId);
-		}
-		return searchRecipes(searchString, requestingUserId);
-	}
 
-	private List<ApiRecipe> findAllRecipes(final UserId requestingUserId) {
-		final List<Recipe> recipes = recipeRepository.findAllRecipes();
-		return recipeTranslator.toApi(recipes, requestingUserId);
+		if(searchString != null && recipeBookUserId != null) {
+			throw new RuntimeException("A query with both recipeBook and searchString is not currently supported");
+		}
+
+		if (searchString != null) {
+			return searchRecipes(searchString, requestingUserId);
+		}
+
+		if(recipeBookUserId != null) {
+			return findRecipesForRecipeBook(recipeBookUserId, requestingUserId);
+		}
+		return findAllRecipes(requestingUserId);
 	}
 
 	private List<ApiRecipe> searchRecipes(final String searchString, final UserId requestingUserId) {
 		final List<SearchTag> searchTags = recipeSearchStringParser.parseSearchString(searchString);
 		final List<Recipe> allRecipes = recipeRepository.searchRecipes(searchTags);
 		return recipeTranslator.toApi(allRecipes, requestingUserId);
+	}
+
+	private List<ApiRecipe> findRecipesForRecipeBook(String recipeBookUserId, UserId requestingUserId) {
+		final List<ApiRecipeId> recipeBook = recipeBookEndpoint.getRecipeBook(recipeBookUserId);
+		final List<RecipeId> recipeIds = recipeBookToRecipeTranslator.translateIds(recipeBook);
+		final List<Recipe> recipesById = recipeRepository.findRecipesWithIds(recipeIds);
+		return recipeTranslator.toApi(recipesById, requestingUserId);
+	}
+
+	private List<ApiRecipe> findAllRecipes(final UserId requestingUserId) {
+		final List<Recipe> recipes = recipeRepository.findAllRecipes();
+		return recipeTranslator.toApi(recipes, requestingUserId);
 	}
 
 	@GET

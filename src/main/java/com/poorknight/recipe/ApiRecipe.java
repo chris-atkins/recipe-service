@@ -1,5 +1,6 @@
 package com.poorknight.recipe;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class ApiRecipe {
 	private String recipeId;
 	private String recipeName;

@@ -16,6 +16,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -75,6 +76,27 @@ public class RecipeRepository {
 		return toRecipeList(recipeIterator);
 	}
 
+	public List<Recipe> findRecipesWithIds(final List<RecipeId> recipeIdsToFind) {
+		final MongoCollection<Document> collection = getRecipeCollection();
+		final Bson recipeWithAnyTag = buildQueryForRecipeIds(recipeIdsToFind);
+		final MongoCursor<Document> recipeIterator = collection.find(recipeWithAnyTag).iterator();
+		return toRecipeList(recipeIterator);
+	}
+
+	private Bson buildQueryForRecipeIds(final List<RecipeId> recipeIdsToFind) {
+		List<ObjectId> objectIds = new ArrayList<>(recipeIdsToFind.size());
+		for (RecipeId id : recipeIdsToFind) {
+			if (isAValidObjectId(id)) {
+				objectIds.add(new ObjectId(id.getValue()));
+			}
+		}
+		return Filters.in("_id", objectIds);
+	}
+
+	private boolean isAValidObjectId(RecipeId id) {
+		return id != null && id.getValue() != null && ObjectId.isValid(id.getValue());
+	}
+
 	public List<Recipe> searchRecipes(final List<SearchTag> searchTags) {
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final Bson recipeWithAnyTag = buildQueryForAnyTagFound(searchTags);
@@ -88,8 +110,7 @@ public class RecipeRepository {
 			sb.append(" ").append(tag.getValue());
 		}
 
-		final Bson anyOfTagsFilter = Filters.text(sb.toString().trim());
-		return anyOfTagsFilter;
+		return Filters.text(sb.toString().trim());
 	}
 
 	public void deleteRecipe(final RecipeId id) {

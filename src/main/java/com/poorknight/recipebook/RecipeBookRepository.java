@@ -60,6 +60,7 @@ public class RecipeBookRepository {
 		collection.insertOne(recipeBookDocument);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void updateExistingRecipeBookIfNeeded(MongoCollection<Document> collection, Document existingDocument, UserId userId, RecipeId recipeId) {
 		final ArrayList<ObjectId> recipeIds = existingDocument.get("recipeIds", ArrayList.class);
 		if (recipeIds.contains(new ObjectId(recipeId.getValue()))) {
@@ -75,6 +76,7 @@ public class RecipeBookRepository {
 		return new Document("userId", new ObjectId(userId.getValue())).append("recipeIds", existingRecipeIds);
 	}
 
+	@SuppressWarnings("unchecked")
 	private RecipeBook toRecipeBook(Document recipeBookDocument) {
 		if (recipeBookDocument == null) {
 			return null;

@@ -1,14 +1,12 @@
 package com.poorknight.api;
 
-import com.poorknight.recipe.ApiRecipe;
-import com.poorknight.recipe.Recipe;
+import com.poorknight.recipe.*;
 import com.poorknight.recipe.Recipe.RecipeId;
 import com.poorknight.recipe.Recipe.UserId;
-import com.poorknight.recipe.RecipeRepository;
-import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipe.search.SearchTag;
+import com.poorknight.recipebook.ApiRecipeId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -40,6 +38,12 @@ public class RecipeEndpointTest {
 	@Mock
 	private RecipeSearchStringParser recipeSearchStringParser;
 
+	@Mock
+	private RecipeBookEndpoint recipeBookEndpoint;
+
+	@Mock
+	private RecipeBookToRecipeTranslator recipeBookToRecipeTranslator;
+
 	@Test
 	public void getRecipes_WithNoSearchString_DelegatesToItsCollaborators() throws Exception {
 		final UserId userId = new UserId("user");
@@ -50,7 +54,7 @@ public class RecipeEndpointTest {
 		when(repository.findAllRecipes()).thenReturn(recipesFromRepository);
 		when(translator.toApi(recipesFromRepository, userId)).thenReturn(translatedRecipes);
 
-		final List<ApiRecipe> results = endpoint.getRecipes(null, "user");
+		final List<ApiRecipe> results = endpoint.getRecipes(null, null, "user");
 		assertThat(results).isSameAs(translatedRecipes);
 	}
 
@@ -66,8 +70,37 @@ public class RecipeEndpointTest {
 		when(repository.searchRecipes(searchTags)).thenReturn(recipesFromRepository);
 		when(translator.toApi(recipesFromRepository, new UserId("user"))).thenReturn(translatedRecipes);
 
-		final List<ApiRecipe> results = endpoint.getRecipes("search string", "user");
+		final List<ApiRecipe> results = endpoint.getRecipes("search string", null, "user");
 		assertThat(results).isSameAs(translatedRecipes);
+	}
+
+	@Test
+	public void getRecipes_WithRecipeBook_DelegatesToItsCollaborators() throws Exception {
+		final UserId userId = new UserId("user");
+		final List<ApiRecipeId> recipeIdsFromRecipeBook = Collections.singletonList(new ApiRecipeId("hi"));
+		final List<RecipeId> recipeIdsToFind = Collections.singletonList(new RecipeId("hi"));
+		final List<Recipe> recipesFromRepository = Collections.singletonList(new Recipe(null, null, null));
+		final List<ApiRecipe> translatedRecipes = Collections.singletonList(new ApiRecipe());
+
+		when(recipeBookEndpoint.getRecipeBook("recipeBookUserId")).thenReturn(recipeIdsFromRecipeBook);
+		when(recipeBookToRecipeTranslator.translateIds(recipeIdsFromRecipeBook)).thenReturn(recipeIdsToFind);
+
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(repository.findRecipesWithIds(recipeIdsToFind)).thenReturn(recipesFromRepository);
+		when(translator.toApi(recipesFromRepository, new UserId("user"))).thenReturn(translatedRecipes);
+
+		final List<ApiRecipe> results = endpoint.getRecipes(null, "recipeBookUserId", "user");
+		assertThat(results).isSameAs(translatedRecipes);
+	}
+
+	@Test
+	public void getRecipes_WithBothASearchStringAndARecipeBook_ThrowsException() throws Exception {
+		try {
+			endpoint.getRecipes("searchString", "recipeBookUserId", "user");
+			fail("expectingException");
+		} catch (RuntimeException e) {
+			assertThat(e.getMessage()).isEqualTo("A query with both recipeBook and searchString is not currently supported");
+		}
 	}
 
 	@Test

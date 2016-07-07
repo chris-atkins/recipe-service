@@ -1,5 +1,6 @@
 package com.poorknight.user;
 
+@SuppressWarnings("WeakerAccess")
 public class User {
 
 	private final UserId id;

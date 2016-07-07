@@ -1,5 +1,6 @@
 package com.poorknight.recipe;
 
+@SuppressWarnings("WeakerAccess")
 public class Recipe {
 
 	private final RecipeId id;

@@ -1,11 +1,10 @@
 package com.poorknight.application.init;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
-import java.util.concurrent.TimeUnit;
-
+import com.codahale.metrics.MetricRegistry;
+import com.github.jjagged.metrics.reporting.StatsDReporter;
+import com.github.jjagged.metrics.reporting.statsd.StatsD;
+import com.poorknight.application.RecipeServiceConfiguration;
+import io.dropwizard.setup.Bootstrap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -14,13 +13,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.codahale.metrics.MetricRegistry;
-import com.github.jjagged.metrics.reporting.StatsDReporter;
-import com.github.jjagged.metrics.reporting.statsd.StatsD;
-import com.poorknight.application.RecipeServiceConfiguration;
-import com.poorknight.application.init.MetricsInitializer;
+import java.util.concurrent.TimeUnit;
 
-import io.dropwizard.setup.Bootstrap;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ StatsDReporter.class, StatsD.class })
