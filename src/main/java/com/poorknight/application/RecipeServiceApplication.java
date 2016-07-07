@@ -12,6 +12,8 @@ import com.poorknight.application.init.MongoSetup;
 import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.RecipeTranslator;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
+import com.poorknight.recipebook.RecipeBookRepository;
+import com.poorknight.recipebook.RecipeBookTranslator;
 import com.poorknight.user.UserRepository;
 import com.poorknight.user.UserTranslator;
 import io.dropwizard.Application;
@@ -54,7 +56,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 
 		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(mongoClient);
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
-		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint();
+		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(mongoClient);
 
 		environment.jersey().register(recipeEndpoint);
 		environment.jersey().register(userEndpoint);
@@ -73,8 +75,10 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		return new UserEndpoint(userRepository, userTranslator);
 	}
 
-	private RecipeBookEndpoint initializeRecipeBookEndpoint() {
-		return new RecipeBookEndpoint();
+	private RecipeBookEndpoint initializeRecipeBookEndpoint(final MongoClient mongoClient) {
+		RecipeBookRepository recipeBookRepository = new RecipeBookRepository(mongoClient);
+		RecipeBookTranslator recipeBookTranslator = new RecipeBookTranslator();
+		return new RecipeBookEndpoint(recipeBookRepository, recipeBookTranslator);
 	}
 
 	private MongoClient connectToDatabase() {

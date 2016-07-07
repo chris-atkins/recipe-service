@@ -1,14 +1,12 @@
 package com.poorknight.mongo.setup;
 
-import org.bson.Document;
-
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.poorknight.application.init.MongoSetup;
 import com.poorknight.recipe.RecipeCollectionInitializer;
+import com.poorknight.recipebook.RecipeBookCollectionInitializer;
 import com.poorknight.user.UserCollectionInitializer;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -19,6 +17,7 @@ import de.flapdoodle.embed.mongo.distribution.Feature;
 import de.flapdoodle.embed.mongo.distribution.Versions;
 import de.flapdoodle.embed.process.distribution.GenericVersion;
 import de.flapdoodle.embed.process.runtime.Network;
+import org.bson.Document;
 
 public class MongoSetupHelper {
 
@@ -62,5 +61,11 @@ public class MongoSetupHelper {
 			mongod.stop();
 			mongodExecutable.stop();
 		}
+	}
+
+	public static void deleteAllRecipeBooks() {
+		final MongoDatabase database = mongo.getDatabase(MongoSetup.DB_NAME);
+		final MongoCollection<Document> collection = database.getCollection(RecipeBookCollectionInitializer.RECIPE_BOOK_COLLECTION);
+		collection.deleteMany(new Document());
 	}
 }

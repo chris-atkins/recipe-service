@@ -3,6 +3,7 @@ package com.poorknight.application.init;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.poorknight.recipe.RecipeCollectionInitializer;
+import com.poorknight.recipebook.RecipeBookCollectionInitializer;
 import com.poorknight.user.UserCollectionInitializer;
 
 public class MongoSetup {
@@ -14,5 +15,6 @@ public class MongoSetup {
 
 		new RecipeCollectionInitializer().initializeCollection(database);
 		new UserCollectionInitializer().initializeCollection(database);
+		new RecipeBookCollectionInitializer().initializeCollection(database);
 	}
 }
