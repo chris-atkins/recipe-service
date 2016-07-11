@@ -46,12 +46,12 @@ public class RecipeBookEndpointTest {
 		when(recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId)).thenReturn(savedRecipeId);
 		when(recipeBookTranslator.recipeIdFor(savedRecipeId)).thenReturn(translatedResults);
 
-		final ApiRecipeId result = recipeBookEndpoint.postIdToRecipeBook(userIdString, apiRecipeId);
+		final ApiRecipeId result = recipeBookEndpoint.postIdToRecipeBook(userIdString, apiRecipeId, userIdString);
 		assertThat(result).isEqualTo(translatedResults);
 	}
 
 	@Test
-	public void postThrows400ExceptionWithBadId() throws Exception {
+	public void post_WithBadId_Throws400Exception() throws Exception {
 		String userIdString = randomIdString();
 		ApiRecipeId apiRecipeId = new ApiRecipeId(randomIdString());
 
@@ -63,11 +63,25 @@ public class RecipeBookEndpointTest {
 		when(recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId)).thenThrow(new InvalidIdException("hi"));
 
 		try {
-			recipeBookEndpoint.postIdToRecipeBook(userIdString, apiRecipeId);
+			recipeBookEndpoint.postIdToRecipeBook(userIdString, apiRecipeId, userIdString);
 			fail("expecting exception");
 		} catch (final WebApplicationException e) {
 			assertThat(e.getMessage()).isEqualTo("The passed ID is not valid: hi");
 			assertThat(e.getResponse().getStatus()).isEqualTo(400);
+		}
+	}
+
+	@Test
+	public void post_ToARecipeBookForADifferentUser_Throws401Exception() throws Exception {
+		final String userIdString = "userIdString";
+
+		try {
+			recipeBookEndpoint.postIdToRecipeBook("aDifferentUser", null, userIdString);
+			fail("expecting exception");
+
+		} catch (final WebApplicationException e) {
+			assertThat(e.getMessage()).isEqualTo("Invalid user. Only the owner of a recipe book may alter it.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
 		}
 	}
 

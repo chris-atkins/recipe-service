@@ -24,7 +24,9 @@ public class RecipeBookEndpoint {
 	@POST
     @Path("/")
     @Timed(name = "postIdToRecipeBook")
-    public ApiRecipeId postIdToRecipeBook(@PathParam("userId") final String userIdString, final ApiRecipeId apiRecipeId) {
+    public ApiRecipeId postIdToRecipeBook(@PathParam("userId") final String userIdString, final ApiRecipeId apiRecipeId, @HeaderParam("RequestingUser") final String requestingUserIdString) {
+		validateUserIsAllowedToPost(userIdString, requestingUserIdString);
+
 		UserId userId = recipeBookTranslator.userIdFor(userIdString);
 		RecipeId recipeId = recipeBookTranslator.toDomain(apiRecipeId);
 
@@ -33,6 +35,12 @@ public class RecipeBookEndpoint {
 			return recipeBookTranslator.recipeIdFor(resultsFromAddingRecipeId);
 		} catch (InvalidIdException e) {
 			throw new WebApplicationException(e.getMessage(), Response.Status.BAD_REQUEST);
+		}
+	}
+
+	private void validateUserIsAllowedToPost(final String userIdString, final String requestingUserIdString) {
+		if (!userIdString.equals(requestingUserIdString)) {
+			throw new WebApplicationException("Invalid user. Only the owner of a recipe book may alter it.", 401);
 		}
 	}
 
