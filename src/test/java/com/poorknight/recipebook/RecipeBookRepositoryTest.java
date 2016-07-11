@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import org.junit.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class RecipeBookRepositoryTest {
 
@@ -83,6 +84,32 @@ public class RecipeBookRepositoryTest {
 	}
 
 	@Test
+	public void addRecipeIdToRecipeBook_WithInvalidRecipeId_ThrowsInvalidIdException() throws Exception {
+		final UserId userId = new UserId(randomObjectId());
+		final RecipeId recipeId = new RecipeId("invalid");
+
+		try {
+			recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId);
+			fail("expecting exception");
+		} catch (InvalidIdException e) {
+			assertThat(e.getMessage()).isEqualTo("The passed ID is not valid: invalid");
+		}
+	}
+
+	@Test
+	public void addRecipeIdToRecipeBook_WithInvalidUserId_ThrowsInvalidIdException() throws Exception {
+		final UserId userId = new UserId("invalid");
+		final RecipeId recipeId = new RecipeId(randomObjectId());
+
+		try {
+			recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId);
+			fail("expecting exception");
+		} catch (InvalidIdException e) {
+			assertThat(e.getMessage()).isEqualTo("The passed ID is not valid: invalid");
+		}
+	}
+
+	@Test
 	public void getRecipeBook_FindsTheCorrectUsersBook_WhenMoreThanOneExist() throws Exception {
 		final UserId firstUserId = new UserId(randomObjectId());
 		final UserId secondtUserId = new UserId(randomObjectId());
@@ -96,6 +123,18 @@ public class RecipeBookRepositoryTest {
 		assertThat(recipeBook.getUserId()).isEqualTo(secondtUserId);
 		assertThat(recipeBook.getRecipeIds().size()).isEqualTo(1);
 		assertThat(recipeBook.getRecipeIds().get(0)).isEqualTo(secondRecipeId);
+	}
+
+	@Test
+	public void getRecipeBook_WithInvalidUserId_FindsTheCorrectUsersBook__ThrowsInvalidIdException() throws Exception {
+		final UserId userId = new UserId("invalid");
+
+		try {
+			recipeBookRepository.getRecipeBook(userId);
+			fail("expecting exception");
+		} catch (InvalidIdException e) {
+			assertThat(e.getMessage()).isEqualTo("The passed ID is not valid: invalid");
+		}
 	}
 
 	private String randomObjectId() {

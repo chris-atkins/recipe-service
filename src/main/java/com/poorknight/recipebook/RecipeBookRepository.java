@@ -52,7 +52,14 @@ public class RecipeBookRepository {
 	}
 
 	private Bson userIdFilter(UserId userId) {
-		return Filters.eq("userId", new ObjectId(userId.getValue()));
+		return Filters.eq("userId", buildObjectId(userId.getValue()));
+	}
+
+	private ObjectId buildObjectId(String idString) {
+		if(!ObjectId.isValid(idString)) {
+			throw new InvalidIdException(idString);
+		}
+		return new ObjectId(idString);
 	}
 
 	private void insertNewRecipeBook(UserId userId, RecipeId recipeId, MongoCollection<Document> collection) {
@@ -63,7 +70,7 @@ public class RecipeBookRepository {
 	@SuppressWarnings("unchecked")
 	private void updateExistingRecipeBookIfNeeded(MongoCollection<Document> collection, Document existingDocument, UserId userId, RecipeId recipeId) {
 		final ArrayList<ObjectId> recipeIds = existingDocument.get("recipeIds", ArrayList.class);
-		if (recipeIds.contains(new ObjectId(recipeId.getValue()))) {
+		if (recipeIds.contains(buildObjectId(recipeId.getValue()))) {
 			return;
 		}
 
@@ -72,8 +79,8 @@ public class RecipeBookRepository {
 	}
 
 	private Document buildRecipeBook(UserId userId, ArrayList<ObjectId> existingRecipeIds, RecipeId recipeIdToAdd) {
-		existingRecipeIds.add(new ObjectId(recipeIdToAdd.getValue()));
-		return new Document("userId", new ObjectId(userId.getValue())).append("recipeIds", existingRecipeIds);
+		existingRecipeIds.add(buildObjectId(recipeIdToAdd.getValue()));
+		return new Document("userId", buildObjectId(userId.getValue())).append("recipeIds", existingRecipeIds);
 	}
 
 	@SuppressWarnings("unchecked")

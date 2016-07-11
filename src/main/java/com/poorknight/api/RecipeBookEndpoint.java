@@ -1,17 +1,13 @@
 package com.poorknight.api;
 
 import com.codahale.metrics.annotation.Timed;
-import com.poorknight.recipebook.ApiRecipeId;
-import com.poorknight.recipebook.RecipeBook;
+import com.poorknight.recipebook.*;
 import com.poorknight.recipebook.RecipeBook.RecipeId;
 import com.poorknight.recipebook.RecipeBook.UserId;
-import com.poorknight.recipebook.RecipeBookRepository;
-import com.poorknight.recipebook.RecipeBookTranslator;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+import java.util.Collections;
 import java.util.List;
 
 @Path("/user/{userId}/recipe-book")
@@ -32,8 +28,12 @@ public class RecipeBookEndpoint {
 		UserId userId = recipeBookTranslator.userIdFor(userIdString);
 		RecipeId recipeId = recipeBookTranslator.toDomain(apiRecipeId);
 
-		final RecipeId resultsFromAddingRecipeId = recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId);
-		return recipeBookTranslator.recipeIdFor(resultsFromAddingRecipeId);
+		try {
+			final RecipeId resultsFromAddingRecipeId = recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId);
+			return recipeBookTranslator.recipeIdFor(resultsFromAddingRecipeId);
+		} catch (InvalidIdException e) {
+			throw new WebApplicationException(e.getMessage(), Response.Status.BAD_REQUEST);
+		}
 	}
 
 	@GET
@@ -41,7 +41,12 @@ public class RecipeBookEndpoint {
 	@Timed(name = "getRecipeBook")
 	public List<ApiRecipeId> getRecipeBook(@PathParam("userId") final String userIdString) {
 		UserId userId = recipeBookTranslator.userIdFor(userIdString);
-		final RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
-		return recipeBookTranslator.toApi(recipeBook);
+
+		try {
+			final RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
+			return recipeBookTranslator.toApi(recipeBook);
+		} catch (InvalidIdException e) {
+			return Collections.emptyList();
+		}
 	}
 }
