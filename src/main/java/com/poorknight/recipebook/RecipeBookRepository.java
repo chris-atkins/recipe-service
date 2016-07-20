@@ -18,7 +18,7 @@ public class RecipeBookRepository {
 
 	private final MongoClient mongoClient;
 
-	public RecipeBookRepository(MongoClient mongoClient) {
+	public RecipeBookRepository(final MongoClient mongoClient) {
 		this.mongoClient = mongoClient;
 	}
 
@@ -27,13 +27,13 @@ public class RecipeBookRepository {
 		return database.getCollection(RecipeBookCollectionInitializer.RECIPE_BOOK_COLLECTION);
 	}
 
-	public RecipeBook getRecipeBook(UserId userId) {
+	public RecipeBook getRecipeBook(final UserId userId) {
 		final MongoCollection<Document> collection = getRecipeBookCollection();
 		final Document recipeBookDocument = findRecipeBook(userId, collection);
 		return toRecipeBook(recipeBookDocument);
 	}
 
-	public RecipeId addRecipeIdToRecipeBook(UserId userId, RecipeId recipeId) {
+	public RecipeId addRecipeIdToRecipeBook(final UserId userId, final RecipeId recipeId) {
 		final MongoCollection<Document> collection = getRecipeBookCollection();
 		final Document existingDocument = findRecipeBook(userId, collection);
 
@@ -46,56 +46,77 @@ public class RecipeBookRepository {
 		return recipeId;
 	}
 
-	private Document findRecipeBook(UserId userId, MongoCollection<Document> collection) {
+	private Document findRecipeBook(final UserId userId, final MongoCollection<Document> collection) {
 		final Bson userFilter = userIdFilter(userId);
 		return collection.find(userFilter).first();
 	}
 
-	private Bson userIdFilter(UserId userId) {
+	private Bson userIdFilter(final UserId userId) {
 		return Filters.eq("userId", buildObjectId(userId.getValue()));
 	}
 
-	private ObjectId buildObjectId(String idString) {
+	private ObjectId buildObjectId(final String idString) {
 		if(!ObjectId.isValid(idString)) {
 			throw new InvalidIdException(idString);
 		}
 		return new ObjectId(idString);
 	}
 
-	private void insertNewRecipeBook(UserId userId, RecipeId recipeId, MongoCollection<Document> collection) {
-		Document recipeBookDocument = buildRecipeBook(userId, new ArrayList<>(), recipeId);
+	private void insertNewRecipeBook(final UserId userId, final RecipeId recipeId, final MongoCollection<Document> collection) {
+		final Document recipeBookDocument = buildRecipeBook(userId, new ArrayList<>(), recipeId);
 		collection.insertOne(recipeBookDocument);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void updateExistingRecipeBookIfNeeded(MongoCollection<Document> collection, Document existingDocument, UserId userId, RecipeId recipeId) {
+	private void updateExistingRecipeBookIfNeeded(final MongoCollection<Document> collection, final Document existingDocument, final UserId userId, final RecipeId recipeId) {
 		final ArrayList<ObjectId> recipeIds = existingDocument.get("recipeIds", ArrayList.class);
 		if (recipeIds.contains(buildObjectId(recipeId.getValue()))) {
 			return;
 		}
 
-		Document recipeBookDocument = buildRecipeBook(userId, recipeIds, recipeId);
+		final Document recipeBookDocument = buildRecipeBook(userId, recipeIds, recipeId);
 		collection.findOneAndReplace(userIdFilter(userId), recipeBookDocument);
 	}
 
-	private Document buildRecipeBook(UserId userId, ArrayList<ObjectId> existingRecipeIds, RecipeId recipeIdToAdd) {
+	private Document buildRecipeBook(final UserId userId, final ArrayList<ObjectId> existingRecipeIds, final RecipeId recipeIdToAdd) {
 		existingRecipeIds.add(buildObjectId(recipeIdToAdd.getValue()));
 		return new Document("userId", buildObjectId(userId.getValue())).append("recipeIds", existingRecipeIds);
 	}
 
 	@SuppressWarnings("unchecked")
-	private RecipeBook toRecipeBook(Document recipeBookDocument) {
+	private RecipeBook toRecipeBook(final Document recipeBookDocument) {
 		if (recipeBookDocument == null) {
 			return null;
 		}
 		final String userIdString = recipeBookDocument.getObjectId("userId").toHexString();
 		final ArrayList<ObjectId> recipeObjectIds = recipeBookDocument.get("recipeIds", ArrayList.class);
 
-		List<RecipeId> recipeIds = new ArrayList<>(recipeObjectIds.size());
-		for(ObjectId id : recipeObjectIds) {
+		final List<RecipeId> recipeIds = new ArrayList<>(recipeObjectIds.size());
+		for(final ObjectId id : recipeObjectIds) {
 			recipeIds.add(new RecipeId(id.toHexString()));
 		}
 
 		return new RecipeBook(new UserId(userIdString), recipeIds);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void deleteRecipeFromRecipeBook(final UserId userId, final RecipeId recipeId) {
+		final MongoCollection<Document> collection = getRecipeBookCollection();
+
+		final Document existingDocument = findRecipeBook(userId, collection);
+		final ArrayList<ObjectId> recipeIds = existingDocument.get("recipeIds", ArrayList.class);
+
+		final ObjectId objectIdForRecipe = buildObjectId(recipeId.getValue());
+		if (!recipeIds.contains(objectIdForRecipe)) {
+			throw new RecipeNotInBookException(recipeId);
+		}
+		recipeIds.remove(objectIdForRecipe);
+
+		final Document recipeBookDocument = buildRecipeBook(userId, recipeIds);
+		collection.findOneAndReplace(userIdFilter(userId), recipeBookDocument);
+	}
+
+	private Document buildRecipeBook(final UserId userId, final ArrayList<ObjectId> recipeIds) {
+		return new Document("userId", buildObjectId(userId.getValue())).append("recipeIds", recipeIds);
 	}
 }

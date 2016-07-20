@@ -15,39 +15,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(JUnit4.class)
 public class RecipeBookTranslatorTest {
 
-	private RecipeBookTranslator recipeBookTranslator = new RecipeBookTranslator();
+	private final RecipeBookTranslator recipeBookTranslator = new RecipeBookTranslator();
 
 	@Test
-	public void recipeIdFor_TranslatesCorrectly() throws Exception {
+	public void apiRecipeIdFor_TranslatesCorrectly() throws Exception {
 		final String recipeIdString = RandomStringUtils.random(10);
-		RecipeId recipeId = new RecipeId(recipeIdString);
+		final RecipeId recipeId = new RecipeId(recipeIdString);
 
-		final ApiRecipeId apiRecipeId = recipeBookTranslator.recipeIdFor(recipeId);
+		final ApiRecipeId apiRecipeId = recipeBookTranslator.apiRecipeIdFor(recipeId);
 		assertThat(apiRecipeId.getRecipeId()).isEqualTo(recipeIdString);
 	}
 
 	@Test
-	public void recipeIdFor_WithNullRecipeId_ReturnsNull() throws Exception {
-		final ApiRecipeId apiRecipeId = recipeBookTranslator.recipeIdFor(null);
+	public void apiRecipeIdFor_WithNullRecipeId_ReturnsNull() throws Exception {
+		final ApiRecipeId apiRecipeId = recipeBookTranslator.apiRecipeIdFor(null);
 		assertThat(apiRecipeId).isNull();
 	}
 
 	@Test
-	public void recipeIdFor_WithNullRecipeIdValue_ReturnsNull() throws Exception {
-		final ApiRecipeId apiRecipeId = recipeBookTranslator.recipeIdFor(new RecipeId(null));
+	public void apiRecipeIdFor_WithNullRecipeIdValue_ReturnsNull() throws Exception {
+		final ApiRecipeId apiRecipeId = recipeBookTranslator.apiRecipeIdFor(new RecipeId(null));
 		assertThat(apiRecipeId).isNull();
 	}
 
 	@Test
-	public void recipeIdFor_WithEmptyRecipeIdValue_ReturnsNull() throws Exception {
-		final ApiRecipeId apiRecipeId = recipeBookTranslator.recipeIdFor(new RecipeId(""));
+	public void apiRecipeIdFor_WithEmptyRecipeIdValue_ReturnsNull() throws Exception {
+		final ApiRecipeId apiRecipeId = recipeBookTranslator.apiRecipeIdFor(new RecipeId(""));
 		assertThat(apiRecipeId).isNull();
 	}
 
 	@Test
 	public void toDomain_TranslatesCorrectly() throws Exception {
-		String recipeIdString = RandomStringUtils.random(10);
-		ApiRecipeId apiRecipeId = new ApiRecipeId(recipeIdString);
+		final String recipeIdString = RandomStringUtils.random(10);
+		final ApiRecipeId apiRecipeId = new ApiRecipeId(recipeIdString);
 
 		final RecipeId recipeId = recipeBookTranslator.toDomain(apiRecipeId);
 		assertThat(recipeId.getValue()).isEqualTo(recipeIdString);
@@ -73,9 +73,16 @@ public class RecipeBookTranslatorTest {
 
 	@Test
 	public void userIdFor_TranslatesCorrectly() throws Exception {
-		String userIdString = RandomStringUtils.random(10);
+		final String userIdString = RandomStringUtils.random(10);
 		final UserId userId = recipeBookTranslator.userIdFor(userIdString);
 		assertThat(userId.getValue()).isEqualTo(userIdString);
+	}
+
+	@Test
+	public void recipeIdFor_TranslatesCorrectly() throws Exception {
+		final String recipeIdString = RandomStringUtils.random(10);
+		final RecipeId recipeId = recipeBookTranslator.recipeIdFor(recipeIdString);
+		assertThat(recipeId.getValue()).isEqualTo(recipeIdString);
 	}
 
 	@Test
@@ -92,12 +99,12 @@ public class RecipeBookTranslatorTest {
 
 	@Test
 	public void toApi_TranslatesCorrectly() throws Exception {
-		String recipeId1String = RandomStringUtils.random(10);
-		String recipeId2String = RandomStringUtils.random(10);
+		final String recipeId1String = RandomStringUtils.random(10);
+		final String recipeId2String = RandomStringUtils.random(10);
 
-		RecipeId recipeId1 = new RecipeId(recipeId1String);
-		RecipeId recipeId2 = new RecipeId(recipeId2String);
-		RecipeBook recipeBook = new RecipeBook(new UserId(RandomStringUtils.random(15)), Arrays.asList(recipeId1, recipeId2));
+		final RecipeId recipeId1 = new RecipeId(recipeId1String);
+		final RecipeId recipeId2 = new RecipeId(recipeId2String);
+		final RecipeBook recipeBook = new RecipeBook(new UserId(RandomStringUtils.random(15)), Arrays.asList(recipeId1, recipeId2));
 
 		final List<ApiRecipeId> apiRecipeIds = recipeBookTranslator.toApi(recipeBook);
 		assertThat(apiRecipeIds.size()).isEqualTo(2);

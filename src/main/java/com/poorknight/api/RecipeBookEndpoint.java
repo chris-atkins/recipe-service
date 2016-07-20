@@ -13,10 +13,10 @@ import java.util.List;
 @Path("/user/{userId}/recipe-book")
 public class RecipeBookEndpoint {
 
-	private RecipeBookRepository recipeBookRepository;
-	private RecipeBookTranslator recipeBookTranslator;
+	private final RecipeBookRepository recipeBookRepository;
+	private final RecipeBookTranslator recipeBookTranslator;
 
-	public RecipeBookEndpoint(RecipeBookRepository recipeBookRepository, RecipeBookTranslator recipeBookTranslator) {
+	public RecipeBookEndpoint(final RecipeBookRepository recipeBookRepository, final RecipeBookTranslator recipeBookTranslator) {
 		this.recipeBookRepository = recipeBookRepository;
 		this.recipeBookTranslator = recipeBookTranslator;
 	}
@@ -25,20 +25,20 @@ public class RecipeBookEndpoint {
     @Path("/")
     @Timed(name = "postIdToRecipeBook")
     public ApiRecipeId postIdToRecipeBook(@PathParam("userId") final String userIdString, final ApiRecipeId apiRecipeId, @HeaderParam("RequestingUser") final String requestingUserIdString) {
-		validateUserIsAllowedToPost(userIdString, requestingUserIdString);
+		validateUserIsAllowedToAlterBook(userIdString, requestingUserIdString);
 
-		UserId userId = recipeBookTranslator.userIdFor(userIdString);
-		RecipeId recipeId = recipeBookTranslator.toDomain(apiRecipeId);
+		final UserId userId = recipeBookTranslator.userIdFor(userIdString);
+		final RecipeId recipeId = recipeBookTranslator.toDomain(apiRecipeId);
 
 		try {
 			final RecipeId resultsFromAddingRecipeId = recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId);
-			return recipeBookTranslator.recipeIdFor(resultsFromAddingRecipeId);
-		} catch (InvalidIdException e) {
+			return recipeBookTranslator.apiRecipeIdFor(resultsFromAddingRecipeId);
+		} catch (final InvalidIdException e) {
 			throw new WebApplicationException(e.getMessage(), Response.Status.BAD_REQUEST);
 		}
 	}
 
-	private void validateUserIsAllowedToPost(final String userIdString, final String requestingUserIdString) {
+	private void validateUserIsAllowedToAlterBook(final String userIdString, final String requestingUserIdString) {
 		if (!userIdString.equals(requestingUserIdString)) {
 			throw new WebApplicationException("Invalid user. Only the owner of a recipe book may alter it.", 401);
 		}
@@ -48,13 +48,29 @@ public class RecipeBookEndpoint {
 	@Path("/")
 	@Timed(name = "getRecipeBook")
 	public List<ApiRecipeId> getRecipeBook(@PathParam("userId") final String userIdString) {
-		UserId userId = recipeBookTranslator.userIdFor(userIdString);
+		final UserId userId = recipeBookTranslator.userIdFor(userIdString);
 
 		try {
 			final RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
 			return recipeBookTranslator.toApi(recipeBook);
-		} catch (InvalidIdException e) {
+		} catch (final InvalidIdException e) {
 			return Collections.emptyList();
+		}
+	}
+
+	@DELETE
+	@Path("/{recipeId}")
+	@Timed(name = "deleteRecipeFromBook")
+	public void deleteRecipeFromBook(@PathParam("userId") final String userIdString, @PathParam("recipeId") final String recipeIdString, @HeaderParam("RequestingUser") final String requestingUserIdString) {
+		validateUserIsAllowedToAlterBook(userIdString, requestingUserIdString);
+
+		final UserId userId = recipeBookTranslator.userIdFor(userIdString);
+		final RecipeId recipeId = recipeBookTranslator.recipeIdFor(recipeIdString);
+
+		try {
+			recipeBookRepository.deleteRecipeFromRecipeBook(userId, recipeId);
+		} catch(final RecipeNotInBookException e) {
+			throw new NotFoundException(e);
 		}
 	}
 }

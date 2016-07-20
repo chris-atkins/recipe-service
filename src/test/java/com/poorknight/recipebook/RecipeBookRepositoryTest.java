@@ -45,7 +45,7 @@ public class RecipeBookRepositoryTest {
 		final RecipeId result = recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId);
 		assertThat(result).isEqualTo(recipeId);
 
-		RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
+		final RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
 		assertThat(recipeBook.getUserId()).isEqualTo(userId);
 		assertThat(recipeBook.getRecipeIds().size()).isEqualTo(1);
 		assertThat(recipeBook.getRecipeIds().get(0)).isEqualTo(recipeId);
@@ -60,7 +60,7 @@ public class RecipeBookRepositoryTest {
 		recipeBookRepository.addRecipeIdToRecipeBook(userId, firstRecipeId);
 		recipeBookRepository.addRecipeIdToRecipeBook(userId, secondRecipeId);
 
-		RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
+		final RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
 		assertThat(recipeBook.getUserId()).isEqualTo(userId);
 		assertThat(recipeBook.getRecipeIds().size()).isEqualTo(2);
 		assertThat(recipeBook.getRecipeIds().get(0)).isEqualTo(firstRecipeId);
@@ -77,7 +77,7 @@ public class RecipeBookRepositoryTest {
 		recipeBookRepository.addRecipeIdToRecipeBook(userId, firstRecipeId);
 		recipeBookRepository.addRecipeIdToRecipeBook(userId, secondRecipeId);
 
-		RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
+		final RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
 		assertThat(recipeBook.getUserId()).isEqualTo(userId);
 		assertThat(recipeBook.getRecipeIds().size()).isEqualTo(1);
 		assertThat(recipeBook.getRecipeIds().get(0)).isEqualTo(new RecipeId(repeatId));
@@ -91,7 +91,7 @@ public class RecipeBookRepositoryTest {
 		try {
 			recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId);
 			fail("expecting exception");
-		} catch (InvalidIdException e) {
+		} catch (final InvalidIdException e) {
 			assertThat(e.getMessage()).isEqualTo("The passed ID is not valid: invalid");
 		}
 	}
@@ -104,7 +104,7 @@ public class RecipeBookRepositoryTest {
 		try {
 			recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId);
 			fail("expecting exception");
-		} catch (InvalidIdException e) {
+		} catch (final InvalidIdException e) {
 			assertThat(e.getMessage()).isEqualTo("The passed ID is not valid: invalid");
 		}
 	}
@@ -112,15 +112,15 @@ public class RecipeBookRepositoryTest {
 	@Test
 	public void getRecipeBook_FindsTheCorrectUsersBook_WhenMoreThanOneExist() throws Exception {
 		final UserId firstUserId = new UserId(randomObjectId());
-		final UserId secondtUserId = new UserId(randomObjectId());
+		final UserId secondUserId = new UserId(randomObjectId());
 		final RecipeId firstRecipeId = new RecipeId(randomObjectId());
 		final RecipeId secondRecipeId = new RecipeId(randomObjectId());
 
 		recipeBookRepository.addRecipeIdToRecipeBook(firstUserId, firstRecipeId);
-		recipeBookRepository.addRecipeIdToRecipeBook(secondtUserId, secondRecipeId);
+		recipeBookRepository.addRecipeIdToRecipeBook(secondUserId, secondRecipeId);
 
-		RecipeBook recipeBook = recipeBookRepository.getRecipeBook(secondtUserId);
-		assertThat(recipeBook.getUserId()).isEqualTo(secondtUserId);
+		final RecipeBook recipeBook = recipeBookRepository.getRecipeBook(secondUserId);
+		assertThat(recipeBook.getUserId()).isEqualTo(secondUserId);
 		assertThat(recipeBook.getRecipeIds().size()).isEqualTo(1);
 		assertThat(recipeBook.getRecipeIds().get(0)).isEqualTo(secondRecipeId);
 	}
@@ -132,8 +132,57 @@ public class RecipeBookRepositoryTest {
 		try {
 			recipeBookRepository.getRecipeBook(userId);
 			fail("expecting exception");
-		} catch (InvalidIdException e) {
+		} catch (final InvalidIdException e) {
 			assertThat(e.getMessage()).isEqualTo("The passed ID is not valid: invalid");
+		}
+	}
+
+	@Test
+	public void deleteRecipeFromRecipeBook_WithASingleRecipe_RemovesRecipe() throws Exception {
+		final UserId userId = new UserId(randomObjectId());
+		final RecipeId recipeId = new RecipeId(randomObjectId());
+
+		recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeId);
+		assertThat(recipeBookRepository.getRecipeBook(userId).getRecipeIds().size()).isEqualTo(1);
+
+		recipeBookRepository.deleteRecipeFromRecipeBook(userId, recipeId);
+		assertThat(recipeBookRepository.getRecipeBook(userId).getRecipeIds().size()).isEqualTo(0);
+	}
+
+	@Test
+	public void deleteRecipeFromRecipeBook_WithMultipleRecipes_RemovesRecipe() throws Exception {
+		final UserId userId = new UserId(randomObjectId());
+		final String firstRecipeIdString = randomObjectId();
+		final String recipeIdToBeDeletedString = randomObjectId();
+		final RecipeId firstRecipeId = new RecipeId(firstRecipeIdString);
+		final RecipeId recipeIdToBeDeleted = new RecipeId(recipeIdToBeDeletedString);
+
+		recipeBookRepository.addRecipeIdToRecipeBook(userId, firstRecipeId);
+		recipeBookRepository.addRecipeIdToRecipeBook(userId, recipeIdToBeDeleted);
+
+		final RecipeBook recipeBook = recipeBookRepository.getRecipeBook(userId);
+		assertThat(recipeBook.getRecipeIds().size()).isEqualTo(2);
+
+		recipeBookRepository.deleteRecipeFromRecipeBook(userId, recipeIdToBeDeleted);
+		assertThat(recipeBookRepository.getRecipeBook(userId).getRecipeIds().size()).isEqualTo(1);
+		assertThat(recipeBookRepository.getRecipeBook(userId).getRecipeIds().get(0)).isEqualTo(firstRecipeId);
+	}
+
+	@Test
+	public void deleteRecipeFromRecipeBook_WithRecipeIdThatIsNotInTheBook_ThrowsException() throws Exception {
+		final UserId userId = new UserId(randomObjectId());
+		final String firstRecipeIdString = randomObjectId();
+		final RecipeId firstRecipeId = new RecipeId(firstRecipeIdString);
+
+		recipeBookRepository.addRecipeIdToRecipeBook(userId, firstRecipeId);
+		final RecipeId unknownId = new RecipeId(randomObjectId());
+
+		try {
+			recipeBookRepository.deleteRecipeFromRecipeBook(userId, unknownId);
+			fail("expecting exception");
+
+		} catch (final RecipeNotInBookException e) {
+			assertThat(e.getMessage()).contains("Recipe does not exist in recipe book: " + unknownId.getValue());
 		}
 	}
 
