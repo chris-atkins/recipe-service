@@ -1,4 +1,4 @@
-package com.poorknight.application.init;
+package com.poorknight.application.init.historical.run20160905;
 
 import com.mongodb.MongoClient;
 import com.poorknight.mongo.setup.MongoSetupHelper;
