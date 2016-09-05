@@ -9,6 +9,7 @@ import com.poorknight.api.UserEndpoint;
 import com.poorknight.application.filters.MyFilter;
 import com.poorknight.application.init.MetricsInitializer;
 import com.poorknight.application.init.MongoSetup;
+import com.poorknight.application.init.OneTimeRecipeHtmlifier;
 import com.poorknight.recipe.RecipeBookToRecipeTranslator;
 import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.RecipeTranslator;
@@ -63,12 +64,20 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		environment.jersey().register(userEndpoint);
 		environment.jersey().register(recipeBookEndpoint);
 	}
+
 	private RecipeEndpoint initializeRecipeEndpoint(final MongoClient mongoClient, final RecipeBookEndpoint recipeBookEndpoint) {
 		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
 		final RecipeSearchStringParser recipeSearchStringParser = new RecipeSearchStringParser();
 		final RecipeTranslator recipeTranslator = new RecipeTranslator();
 		final RecipeBookToRecipeTranslator recipeBookToRecipeTranslator = new RecipeBookToRecipeTranslator();
+
+		runOneTimeRecipeTransform(recipeRepository);
 		return new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser, recipeBookEndpoint, recipeBookToRecipeTranslator);
+	}
+
+	private void runOneTimeRecipeTransform(final RecipeRepository recipeRepository) {
+		OneTimeRecipeHtmlifier htmlifier = new OneTimeRecipeHtmlifier(recipeRepository);
+		htmlifier.transformAllRecipes();
 	}
 
 	private UserEndpoint initializeUserEndpoint(final MongoClient mongoClient) {
