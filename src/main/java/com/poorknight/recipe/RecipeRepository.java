@@ -39,7 +39,7 @@ public class RecipeRepository {
 		return toRecipe(document);
 	}
 
-	public Recipe updateRecipe(Recipe recipeToUpdate) {
+	public Recipe updateRecipe(final Recipe recipeToUpdate) {
 		throwExceptionIfRecipeIdIsInvalid(recipeToUpdate);
 
 		final Document updatedRecipe = performUpdate(recipeToUpdate);
@@ -48,7 +48,7 @@ public class RecipeRepository {
 		return toRecipe(updatedRecipe);
 	}
 
-	private Document performUpdate(Recipe recipeToUpdate) {
+	private Document performUpdate(final Recipe recipeToUpdate) {
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final Bson idFilter = createFilterOnId(recipeToUpdate.getId());
 		final Document document = new Document("$set", toDocumentForUpdate(recipeToUpdate));
@@ -78,14 +78,14 @@ public class RecipeRepository {
 
 	public List<Recipe> findRecipesWithIds(final List<RecipeId> recipeIdsToFind) {
 		final MongoCollection<Document> collection = getRecipeCollection();
-		final Bson recipeWithAnyTag = buildQueryForRecipeIds(recipeIdsToFind);
-		final MongoCursor<Document> recipeIterator = collection.find(recipeWithAnyTag).iterator();
+		final Bson recipesById = buildQueryForRecipeIds(recipeIdsToFind);
+		final MongoCursor<Document> recipeIterator = collection.find(recipesById).iterator();
 		return toRecipeList(recipeIterator);
 	}
 
 	private Bson buildQueryForRecipeIds(final List<RecipeId> recipeIdsToFind) {
-		List<ObjectId> objectIds = new ArrayList<>(recipeIdsToFind.size());
-		for (RecipeId id : recipeIdsToFind) {
+		final List<ObjectId> objectIds = new ArrayList<>(recipeIdsToFind.size());
+		for (final RecipeId id : recipeIdsToFind) {
 			if (isAValidObjectId(id)) {
 				objectIds.add(new ObjectId(id.getValue()));
 			}
@@ -93,7 +93,7 @@ public class RecipeRepository {
 		return Filters.in("_id", objectIds);
 	}
 
-	private boolean isAValidObjectId(RecipeId id) {
+	private boolean isAValidObjectId(final RecipeId id) {
 		return id != null && id.getValue() != null && ObjectId.isValid(id.getValue());
 	}
 
@@ -161,19 +161,19 @@ public class RecipeRepository {
 		return recipeList;
 	}
 
-	private void throwExceptionIfNoUpdateOccurred(Recipe recipeToUpdate, Document updatedRecipe) {
+	private void throwExceptionIfNoUpdateOccurred(final Recipe recipeToUpdate, final Document updatedRecipe) {
 		if(updatedRecipe == null) {
 			throwInvalidUpdateRecipeIdException(recipeToUpdate.getId());
 		}
 	}
 
-	private void throwExceptionIfRecipeIdIsInvalid(Recipe recipeToUpdate) {
+	private void throwExceptionIfRecipeIdIsInvalid(final Recipe recipeToUpdate) {
 		if (idIsNotValid(recipeToUpdate.getId())) {
 			throwInvalidUpdateRecipeIdException(recipeToUpdate.getId());
 		}
 	}
 
-	private void throwInvalidUpdateRecipeIdException(RecipeId id) {
+	private void throwInvalidUpdateRecipeIdException(final RecipeId id) {
 		throw new NoRecipeExistsForIdException(id);
 	}
 
