@@ -6,7 +6,6 @@ import com.mongodb.ServerAddress;
 import com.poorknight.api.RecipeBookEndpoint;
 import com.poorknight.api.RecipeEndpoint;
 import com.poorknight.api.UserEndpoint;
-import com.poorknight.application.filters.MyFilter;
 import com.poorknight.application.init.MetricsInitializer;
 import com.poorknight.application.init.MongoSetup;
 import com.poorknight.recipe.RecipeBookToRecipeTranslator;
@@ -24,9 +23,7 @@ import io.dropwizard.setup.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.DispatcherType;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,7 +50,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	public void run(final RecipeServiceConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
 		final MongoClient mongoClient = connectToDatabase();
-		environment.getApplicationContext().addFilter(MyFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+//		environment.getApplicationContext().addFilter(MyFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
 		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(mongoClient);
