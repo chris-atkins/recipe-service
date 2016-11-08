@@ -104,6 +104,9 @@ public class RecipeBookRepository {
 		final MongoCollection<Document> collection = getRecipeBookCollection();
 
 		final Document existingDocument = findRecipeBook(userId, collection);
+		if (existingDocument == null) {
+			throw new RecipeBookNotFoundException(userId);
+		}
 		final ArrayList<ObjectId> recipeIds = existingDocument.get("recipeIds", ArrayList.class);
 
 		final ObjectId objectIdForRecipe = buildObjectId(recipeId.getValue());

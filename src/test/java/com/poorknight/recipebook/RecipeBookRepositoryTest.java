@@ -186,6 +186,20 @@ public class RecipeBookRepositoryTest {
 		}
 	}
 
+	@Test
+	public void deleteRecipeFromRecipeBook_WithNoExistingRecipeBook_ThrowsException() throws Exception {
+		final UserId userId = new UserId(randomObjectId());
+		final RecipeId recipeId = new RecipeId(randomObjectId());
+
+		try {
+			recipeBookRepository.deleteRecipeFromRecipeBook(userId, recipeId);
+			fail("expecting exception");
+
+		} catch (final RecipeBookNotFoundException e) {
+			assertThat(e.getMessage()).contains("No recipe book found for user with id: " + userId.getValue());
+		}
+	}
+
 	private String randomObjectId() {
 		return new ObjectId().toHexString();
 	}

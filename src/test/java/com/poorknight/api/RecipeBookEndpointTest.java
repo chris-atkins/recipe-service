@@ -133,14 +133,9 @@ public class RecipeBookEndpointTest {
 	public void deleteRecipeFromBook_WhenRecipeIsNotInBook_Throws404Error() throws Exception {
 		final String userIdString = randomIdString();
 		final String recipeIdString = randomIdString();
+		final RecipeNotInBookException exceptionToThrow = new RecipeNotInBookException(new RecipeId("a"));
 
-		final RecipeId recipeId = new RecipeId(randomIdString());
-		final UserId userId = new UserId(randomIdString());
-		final RecipeNotInBookException exceptionToThrow = new RecipeNotInBookException(recipeId);
-
-		when(recipeBookTranslator.recipeIdFor(recipeIdString)).thenReturn(recipeId);
-		when(recipeBookTranslator.userIdFor(userIdString)).thenReturn(userId);
-		Mockito.doThrow(exceptionToThrow).when(recipeBookRepository).deleteRecipeFromRecipeBook(userId, recipeId);
+		setupRepositoryToThrowException(userIdString, recipeIdString, exceptionToThrow);
 
 		try {
 			recipeBookEndpoint.deleteRecipeFromBook(userIdString, recipeIdString, userIdString);
@@ -149,6 +144,32 @@ public class RecipeBookEndpointTest {
 			assertThat(e.getCause()).isEqualTo(exceptionToThrow);
 		}
 	}
+
+	@Test
+	public void deleteRecipeFromBook_WhenNoRecipeBookCanBeFound_Throws404Error() throws Exception {
+		final String userIdString = randomIdString();
+		final String recipeIdString = randomIdString();
+		final RecipeBookNotFoundException exceptionToThrow = new RecipeBookNotFoundException(new UserId("a"));
+
+		setupRepositoryToThrowException(userIdString, recipeIdString, exceptionToThrow);
+
+		try {
+			recipeBookEndpoint.deleteRecipeFromBook(userIdString, recipeIdString, userIdString);
+			fail("expecting exception");
+		} catch(final NotFoundException e) {
+			assertThat(e.getCause()).isEqualTo(exceptionToThrow);
+		}
+	}
+
+	private void setupRepositoryToThrowException(final String userIdString, final String recipeIdString, final Exception exceptionToThrow) {
+		final RecipeId recipeId = new RecipeId(randomIdString());
+		final UserId userId = new UserId(randomIdString());
+
+		when(recipeBookTranslator.recipeIdFor(recipeIdString)).thenReturn(recipeId);
+		when(recipeBookTranslator.userIdFor(userIdString)).thenReturn(userId);
+		Mockito.doThrow(exceptionToThrow).when(recipeBookRepository).deleteRecipeFromRecipeBook(userId, recipeId);
+	}
+
 
 	@Test
 	public void deleteRecipeFromBook_WhenNoRequestingUserExists_Throws401Error() throws Exception {

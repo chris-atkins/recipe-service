@@ -301,6 +301,17 @@ public class RecipeRepositoryTest {
 	}
 
 	@Test
+	public void updateRecipe_ThrowsException_ForNullId() throws Exception {
+		try {
+			final Recipe recipeToUseForUpdate = new Recipe(null, "originalName", "originalContent", new Recipe.UserId("userId"));
+			recipeRepository.updateRecipe(recipeToUseForUpdate);
+			fail("expected exception");
+		} catch(NoRecipeExistsForIdException e) {
+			Assertions.assertThat(e.getMessage()).isEqualTo("Cannot update recipe - no recipe found with id: null");
+		}
+	}
+
+	@Test
 	public void deleteWorks() throws Exception {
 		final Recipe recipe1 = new Recipe("deleteWorks_name1", "deleteWorks_content1", new Recipe.UserId("userId"));
 		final Recipe recipe2 = new Recipe("deleteWorks_name2", "deleteWorks_content2", new Recipe.UserId("userId"));

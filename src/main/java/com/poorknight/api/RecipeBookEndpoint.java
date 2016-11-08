@@ -69,7 +69,7 @@ public class RecipeBookEndpoint {
 
 		try {
 			recipeBookRepository.deleteRecipeFromRecipeBook(userId, recipeId);
-		} catch(final RecipeNotInBookException e) {
+		} catch(final RecipeNotInBookException | RecipeBookNotFoundException e) {
 			throw new NotFoundException(e);
 		}
 	}

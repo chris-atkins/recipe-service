@@ -67,6 +67,9 @@ public class RecipeRepository {
 	}
 
 	private boolean idIsNotValid(final RecipeId id) {
+		if (id == null) {
+			return true;
+		}
 		return !ObjectId.isValid(id.getValue());
 	}
 
