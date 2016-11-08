@@ -25,7 +25,7 @@ public class MetricsInitializer {
 	}
 
 	private static StatsDReporter buildMetricsReporter(final String url, final String port, final MetricRegistry metricRegistry) {
-		registerApplicationMetrics(metricRegistry);
+//		registerApplicationMetrics(metricRegistry);
 
 		return StatsDReporter.forRegistry(metricRegistry) //
 				.prefixedWith("recipe-service") //
