@@ -1,21 +1,14 @@
 package com.poorknight.api;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-
 import com.codahale.metrics.annotation.Timed;
 import com.poorknight.user.ApiUser;
 import com.poorknight.user.User;
 import com.poorknight.user.UserRepository;
 import com.poorknight.user.UserTranslator;
 import com.poorknight.user.save.NonUniqueEmailException;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 
 @Path("/user")
 @Produces(MediaType.APPLICATION_JSON)
@@ -35,6 +28,7 @@ public class UserEndpoint {
 	@Path("/{id}")
 	public ApiUser getUser(@PathParam("id") final String userId) {
 		final User user = userRepository.findUserById(userTranslator.userIdFor(userId));
+		throwNotFoundExceptionIfUserIsNull(user, userId);
 		return userTranslator.toApi(user);
 	}
 
@@ -43,6 +37,7 @@ public class UserEndpoint {
 	@Path("/")
 	public ApiUser getUserByEmail(@QueryParam("email") final String userEmail) {
 		final User user = userRepository.findUserByEmail(userEmail);
+		throwNotFoundExceptionIfUserIsNull(user, userEmail);
 		return userTranslator.toApi(user);
 	}
 
@@ -61,5 +56,11 @@ public class UserEndpoint {
 		final User userToSave = userTranslator.toDomain(user);
 		final User savedUser = userRepository.saveNewUser(userToSave);
 		return userTranslator.toApi(savedUser);
+	}
+
+	private void throwNotFoundExceptionIfUserIsNull(final User user, final String userIdentifier) {
+		if(user == null) {
+			throw new NotFoundException("User not found: " + userIdentifier);
+		}
 	}
 }

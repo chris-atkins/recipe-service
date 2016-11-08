@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.NotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -50,6 +51,23 @@ public class UserEndpointTest {
 	}
 
 	@Test
+	public void getUserById_ReturnsNotFound_WhenNoUserExists() throws Exception {
+		final String userId = RandomStringUtils.random(20);
+
+		final UserId userIdentity = Mockito.mock(UserId.class);
+		when(userTranslator.userIdFor(userId)).thenReturn(userIdentity);
+
+		when(userRepository.findUserById(userIdentity)).thenReturn(null);
+
+		try {
+			userEndpoint.getUser(userId);
+			fail("expecting exception");
+		} catch (NotFoundException e) {
+			assertThat(e.getMessage()).isEqualTo("User not found: " + userId);
+		}
+	}
+
+	@Test
 	public void getUserByEmail_ReturnsUserFromRepository() throws Exception {
 		final String userEmail = RandomStringUtils.random(20);
 		final User userFromRepository = Mockito.mock(User.class);
@@ -60,6 +78,19 @@ public class UserEndpointTest {
 
 		final ApiUser userFromEndpoint = userEndpoint.getUserByEmail(userEmail);
 		assertThat(userFromEndpoint).isEqualTo(translatedUser);
+	}
+
+	@Test
+	public void getUserByEmail_ReturnsNotFound_WhenNoUserExists() throws Exception {
+		final String userEmail = RandomStringUtils.random(20);
+		when(userRepository.findUserByEmail(userEmail)).thenReturn(null);
+
+		try {
+			userEndpoint.getUserByEmail(userEmail);
+			fail("expecting exception");
+		} catch(NotFoundException e) {
+			assertThat(e.getMessage()).isEqualTo("User not found: " + userEmail);
+		}
 	}
 
 	@Test
