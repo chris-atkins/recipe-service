@@ -1,8 +1,6 @@
 package com.poorknight.application.init;
 
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
-import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.github.jjagged.metrics.reporting.StatsDReporter;
 import com.poorknight.application.RecipeServiceConfiguration;
 import io.dropwizard.setup.Bootstrap;
@@ -34,10 +32,10 @@ public class MetricsInitializer {
 				.build(url, Integer.parseInt(port));
 	}
 
-	private static void registerApplicationMetrics(final MetricRegistry metricRegistry) {
-		metricRegistry.registerAll(new MemoryUsageGaugeSet());
-		metricRegistry.registerAll(new GarbageCollectorMetricSet());
-	}
+//	private static void registerApplicationMetrics(final MetricRegistry metricRegistry) {
+//		metricRegistry.registerAll(new MemoryUsageGaugeSet());
+//		metricRegistry.registerAll(new GarbageCollectorMetricSet());
+//	}
 
 	private static boolean canNotStartMetrics(final String metricsCollectorUrl, final String metricsCollectorPort) {
 		if (StringUtils.isEmpty(metricsCollectorUrl) || StringUtils.isEmpty(metricsCollectorPort) || !StringUtils.isNumeric(metricsCollectorPort)) {
