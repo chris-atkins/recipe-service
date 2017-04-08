@@ -5,6 +5,7 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.poorknight.api.RecipeBookEndpoint;
 import com.poorknight.api.RecipeEndpoint;
+import com.poorknight.api.RecipeImageEndpoint;
 import com.poorknight.api.UserEndpoint;
 import com.poorknight.application.init.MetricsInitializer;
 import com.poorknight.application.init.MongoSetup;
@@ -20,6 +21,7 @@ import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +61,10 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		environment.jersey().register(recipeEndpoint);
 		environment.jersey().register(userEndpoint);
 		environment.jersey().register(recipeBookEndpoint);
+		environment.jersey().register(MultiPartFeature.class);
+		environment.jersey().register(new RecipeImageEndpoint());
+
+		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");  //Allows CORS headers to be returned
 	}
 
 	private RecipeEndpoint initializeRecipeEndpoint(final MongoClient mongoClient, final RecipeBookEndpoint recipeBookEndpoint) {
