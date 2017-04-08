@@ -64,7 +64,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		environment.jersey().register(MultiPartFeature.class);
 		environment.jersey().register(new RecipeImageEndpoint());
 
-		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");  //Allows CORS headers to be returned
+//		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");  //Allows CORS headers to be returned
 	}
 
 	private RecipeEndpoint initializeRecipeEndpoint(final MongoClient mongoClient, final RecipeBookEndpoint recipeBookEndpoint) {

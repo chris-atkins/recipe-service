@@ -9,10 +9,11 @@ import com.codahale.metrics.annotation.Timed;
 import com.poorknight.recipe.RecipeImage;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -24,33 +25,34 @@ import java.util.UUID;
 public class RecipeImageEndpoint {
 
 	private static final String BUCKET_NAME = "myrecipeconnection.com.images";
-	private String _corsHeaders;
-	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	@OPTIONS
-	@Path("/{id}/image")
-	public Response myResource(@HeaderParam("Access-Control-Request-Headers") String requestH) {
-		_corsHeaders = requestH;
-		return makeCORS(Response.ok(), requestH);
-	}
+//	private String _corsHeaders;
+//	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private Response makeCORS(Response.ResponseBuilder req, String returnMethod) {
-		Response.ResponseBuilder rb = req.header("Access-Control-Allow-Origin", "*").header(
-				"Access-Control-Allow-Methods",
-				"GET, POST, OPTIONS");
-
-		if (!"".equals(returnMethod)) {
-			rb.header("Access-Control-Allow-Headers", returnMethod);
-		}
-
-		final Response response = rb.build();
-		logger.error(response.toString());
-		return response;
-	}
-
-	private Response makeCORS(Response.ResponseBuilder req) {
-		return makeCORS(req, _corsHeaders);
-	}
+//	@OPTIONS
+//	@Path("/{id}/image")
+//	public Response myResource(@HeaderParam("Access-Control-Request-Headers") String requestH) {
+//		_corsHeaders = requestH;
+//		return makeCORS(Response.ok(), requestH);
+//	}
+//
+//	private Response makeCORS(Response.ResponseBuilder req, String returnMethod) {
+//		Response.ResponseBuilder rb = req.header("Access-Control-Allow-Origin", "*").header(
+//				"Access-Control-Allow-Methods",
+//				"GET, POST, OPTIONS");
+//
+//		if (!"".equals(returnMethod)) {
+//			rb.header("Access-Control-Allow-Headers", returnMethod);
+//		}
+//
+//		final Response response = rb.build();
+//		logger.error(response.toString());
+//		return response;
+//	}
+//
+//	private Response makeCORS(Response.ResponseBuilder req) {
+//		return makeCORS(req, _corsHeaders);
+//	}
 
 	@POST
 	@Timed(name = "putRecipe")
@@ -65,8 +67,8 @@ public class RecipeImageEndpoint {
 		final URL url = s3.getUrl(BUCKET_NAME, imageId);
 
 		final RecipeImage recipeImage = new RecipeImage(imageId, makeUrlHttp(url));
-		final Response.ResponseBuilder ok = Response.ok(recipeImage);
-		return makeCORS(ok);
+		return Response.ok(recipeImage).build();
+//		return makeCORS(Response.ok(recipeImage);
 	}
 
 	private PutObjectRequest buildPutImageRequest(final InputStream imageInputStream, final String key) {
