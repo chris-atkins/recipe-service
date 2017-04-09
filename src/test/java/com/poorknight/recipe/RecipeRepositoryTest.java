@@ -47,19 +47,21 @@ public class RecipeRepositoryTest {
 
 	@Test
 	public void simpleSaveAndGet_Works() throws Exception {
-		final Recipe recipe = new Recipe("name", "content", new Recipe.UserId("userId"));
+		final Recipe recipe = new Recipe("name", "content", new Recipe.UserId("userId"), "imageUrl");
 
 		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
 		assertThat(savedRecipe.getId(), notNullValue());
 		assertThat(savedRecipe.getName(), equalTo("name"));
 		assertThat(savedRecipe.getContent(), equalTo("content"));
 		assertThat(savedRecipe.getOwningUserId().getValue(), equalTo("userId"));
+		assertThat(savedRecipe.getImageUrl(), equalTo("imageUrl"));
 
 		final Recipe foundRecipe = recipeRepository.findRecipeById(savedRecipe.getId());
 		assertThat(foundRecipe.getId(), equalTo(savedRecipe.getId()));
 		assertThat(foundRecipe.getName(), equalTo("name"));
 		assertThat(foundRecipe.getContent(), equalTo("content"));
 		assertThat(foundRecipe.getOwningUserId().getValue(), equalTo("userId"));
+		assertThat(foundRecipe.getImageUrl(), equalTo("imageUrl"));
 	}
 
 	@Test
@@ -239,23 +241,25 @@ public class RecipeRepositoryTest {
 	}
 
 	@Test
-	public void updateRecipe_CanChangeNameAndContent() throws Exception {
-		final Recipe recipe = new Recipe("originalName", "originalContent", new Recipe.UserId("userId"));
+	public void updateRecipe_CanChangeNameAndContentAndImageUrl() throws Exception {
+		final Recipe recipe = new Recipe("originalName", "originalContent", new Recipe.UserId("userId"), "originalImageUrl");
 		final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
 
-		Recipe recipeToUseForUpdate = new Recipe(savedRecipe.getId(), "updatedName", "updatedContent", savedRecipe.getOwningUserId());
+		Recipe recipeToUseForUpdate = new Recipe(savedRecipe.getId(), "updatedName", "updatedContent", savedRecipe.getOwningUserId(), "updatedImageUrl");
 		final Recipe updatedRecipe = recipeRepository.updateRecipe(recipeToUseForUpdate);
 
 		Assertions.assertThat(updatedRecipe.getId()).isEqualTo(savedRecipe.getId());
 		Assertions.assertThat(updatedRecipe.getName()).isEqualTo("updatedName");
 		Assertions.assertThat(updatedRecipe.getContent()).isEqualTo("updatedContent");
 		Assertions.assertThat(updatedRecipe.getOwningUserId()).isEqualTo(savedRecipe.getOwningUserId());
+		Assertions.assertThat(updatedRecipe.getImageUrl()).isEqualTo("updatedImageUrl");
 
 		final Recipe foundRecipe = recipeRepository.findRecipeById(recipeToUseForUpdate.getId());
 		Assertions.assertThat(foundRecipe.getId()).isEqualTo(savedRecipe.getId());
 		Assertions.assertThat(foundRecipe.getName()).isEqualTo("updatedName");
 		Assertions.assertThat(foundRecipe.getContent()).isEqualTo("updatedContent");
 		Assertions.assertThat(foundRecipe.getOwningUserId()).isEqualTo(savedRecipe.getOwningUserId());
+		Assertions.assertThat(foundRecipe.getImageUrl()).isEqualTo("updatedImageUrl");
 	}
 
 	@Test

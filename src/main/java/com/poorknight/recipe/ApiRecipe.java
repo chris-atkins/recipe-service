@@ -1,11 +1,14 @@
 package com.poorknight.recipe;
 
+import java.util.Objects;
+
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ApiRecipe {
 	private String recipeId;
 	private String recipeName;
 	private String recipeContent;
 	private boolean editable;
+	private String imageUrl;
 
 	public ApiRecipe() {
 		this(null, null, null, false);
@@ -15,12 +18,17 @@ public class ApiRecipe {
 		this(null, recipeName, recipeContent, editable);
 	}
 
-	public ApiRecipe(final String recipeId, final String recipeName, final String recipeCcontent, final boolean editable) {
+	public ApiRecipe(final String recipeId, final String recipeName, final String recipeContent, final boolean editable) {
+		this(recipeId, recipeName, recipeContent, editable, null);
+	}
+
+	public ApiRecipe(final String recipeId, final String recipeName, final String recipeCcontent, final boolean editable, String imageUrl) {
 		super();
 		this.recipeId = recipeId;
 		this.recipeName = recipeName;
 		this.recipeContent = recipeCcontent;
 		this.editable = editable;
+		this.imageUrl = imageUrl;
 	}
 
 	public String getRecipeId() {
@@ -55,58 +63,35 @@ public class ApiRecipe {
 		this.editable = editable;
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (editable ? 1231 : 1237);
-		result = prime * result + ((recipeContent == null) ? 0 : recipeContent.hashCode());
-		result = prime * result + ((recipeId == null) ? 0 : recipeId.hashCode());
-		result = prime * result + ((recipeName == null) ? 0 : recipeName.hashCode());
-		return result;
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(final String imageUrl) {
+		this.imageUrl = imageUrl;
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		final ApiRecipe other = (ApiRecipe) obj;
-		if (editable != other.editable) {
-			return false;
-		}
-		if (recipeContent == null) {
-			if (other.recipeContent != null) {
-				return false;
-			}
-		} else if (!recipeContent.equals(other.recipeContent)) {
-			return false;
-		}
-		if (recipeId == null) {
-			if (other.recipeId != null) {
-				return false;
-			}
-		} else if (!recipeId.equals(other.recipeId)) {
-			return false;
-		}
-		if (recipeName == null) {
-			if (other.recipeName != null) {
-				return false;
-			}
-		} else if (!recipeName.equals(other.recipeName)) {
-			return false;
-		}
-		return true;
+	public boolean equals(final Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		final ApiRecipe apiRecipe = (ApiRecipe) o;
+		return editable == apiRecipe.editable && Objects.equals(recipeId, apiRecipe.recipeId) && Objects.equals(
+				recipeName,
+				apiRecipe.recipeName) && Objects.equals(recipeContent, apiRecipe.recipeContent) && Objects.equals(
+				imageUrl,
+				apiRecipe.imageUrl);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(recipeId, recipeName, recipeContent, editable, imageUrl);
 	}
 
 	@Override
 	public String toString() {
-		return "ApiRecipe [recipeId=" + recipeId + ", recipeName=" + recipeName + ", recipeContent=" + recipeContent + ", editable=" + editable + "]";
+		return com.google.common.base.Objects.toStringHelper(this).add("recipeId", recipeId).add("recipeName",
+				recipeName).add("recipeContent", recipeContent).add("editable", editable).add("imageUrl",
+				imageUrl).toString();
 	}
 }

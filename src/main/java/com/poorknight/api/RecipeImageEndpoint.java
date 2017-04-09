@@ -6,14 +6,13 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.codahale.metrics.annotation.Timed;
+import com.poorknight.recipe.Recipe;
 import com.poorknight.recipe.RecipeImage;
+import com.poorknight.recipe.RecipeRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -25,6 +24,12 @@ import java.util.UUID;
 public class RecipeImageEndpoint {
 
 	private static final String BUCKET_NAME = "myrecipeconnection.com.images";
+
+	private final RecipeRepository recipeRepository;
+
+	public RecipeImageEndpoint(RecipeRepository recipeRepository){
+		this.recipeRepository = recipeRepository;
+	}
 
 //	private String _corsHeaders;
 //	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -59,14 +64,19 @@ public class RecipeImageEndpoint {
 	@Path("/{id}/image")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response postRecipeImage(@FormDataParam("file") InputStream imageInputStream) {
+	public Response postRecipeImage(@PathParam("id") final String recipeId, @FormDataParam("file") InputStream imageInputStream) {
 		final String imageId = UUID.randomUUID().toString();
 		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
 
 		s3.putObject(buildPutImageRequest(imageInputStream, imageId));
 		final URL url = s3.getUrl(BUCKET_NAME, imageId);
+		final String imageUrl = makeUrlHttp(url);
 
-		final RecipeImage recipeImage = new RecipeImage(imageId, makeUrlHttp(url));
+		final Recipe recipe = recipeRepository.findRecipeById(new Recipe.RecipeId(recipeId));
+		Recipe updatedRecipe = new Recipe(recipe.getId(), recipe.getName(), recipe.getContent(), recipe.getOwningUserId(), imageUrl);
+		recipeRepository.updateRecipe(updatedRecipe);
+
+		final RecipeImage recipeImage = new RecipeImage(imageId, imageUrl);
 		return Response.ok(recipeImage).build();
 //		return makeCORS(Response.ok(recipeImage);
 	}

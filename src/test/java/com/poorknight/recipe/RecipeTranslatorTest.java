@@ -1,17 +1,16 @@
 package com.poorknight.recipe;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
-
+import com.poorknight.recipe.Recipe.RecipeId;
+import com.poorknight.recipe.Recipe.UserId;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import com.poorknight.recipe.Recipe.RecipeId;
-import com.poorknight.recipe.Recipe.UserId;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(JUnit4.class)
 public class RecipeTranslatorTest {
@@ -20,6 +19,7 @@ public class RecipeTranslatorTest {
 	private static final String NAME_1 = RandomStringUtils.random(12);
 	private static final String CONTENT_1 = RandomStringUtils.random(12);
 	private static final String USER_ID_1 = RandomStringUtils.random(10);
+	private static final String IMAGE_URL = RandomStringUtils.random(30);
 
 	private static final String ID_2 = RandomStringUtils.random(12);
 	private static final String NAME_2 = RandomStringUtils.random(12);
@@ -30,13 +30,14 @@ public class RecipeTranslatorTest {
 
 	@Test
 	public void toApi_TranslatesSingleRecipe() throws Exception {
-		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1, new UserId(USER_ID_1));
+		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1, new UserId(USER_ID_1), IMAGE_URL);
 		final ApiRecipe translatedRecipe = translator.toApi(recipe, new UserId(USER_ID_1));
 
 		assertThat(translatedRecipe.getRecipeId()).isEqualTo(ID_1);
 		assertThat(translatedRecipe.getRecipeName()).isEqualTo(NAME_1);
 		assertThat(translatedRecipe.getRecipeContent()).isEqualTo(CONTENT_1);
 		assertThat(translatedRecipe.getEditable()).isEqualTo(true);
+		assertThat(translatedRecipe.getImageUrl()).isEqualTo(IMAGE_URL);
 	}
 
 	@Test

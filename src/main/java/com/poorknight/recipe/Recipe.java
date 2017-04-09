@@ -1,5 +1,7 @@
 package com.poorknight.recipe;
 
+import java.util.Objects;
+
 @SuppressWarnings("WeakerAccess")
 public class Recipe {
 
@@ -7,16 +9,26 @@ public class Recipe {
 	private final String name;
 	private final String content;
 	private final UserId owningUserId;
+	private final String imageUrl;
 
 	public Recipe(final String name, final String content, final UserId owningUserId) {
-		this(null, name, content, owningUserId);
+		this(null, name, content, owningUserId, null);
+	}
+
+	public Recipe(final String name, final String content, final UserId owningUserId, String imageUrl) {
+		this(null, name, content, owningUserId, imageUrl);
 	}
 
 	public Recipe(final RecipeId id, final String name, final String content, final UserId owningUserId) {
+		this(id, name, content, owningUserId, null);
+	}
+
+	public Recipe(final RecipeId id, final String name, final String content, final UserId owningUserId, String imageUrl) {
 		this.id = id;
 		this.name = name;
 		this.content = content;
 		this.owningUserId = owningUserId;
+		this.imageUrl = imageUrl;
 	}
 
 	public RecipeId getId() {
@@ -33,6 +45,10 @@ public class Recipe {
 
 	public UserId getOwningUserId() {
 		return this.owningUserId;
+	}
+
+	public String getImageUrl() {
+		return this.imageUrl;
 	}
 
 	public static class RecipeId {
@@ -132,61 +148,23 @@ public class Recipe {
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((content == null) ? 0 : content.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((owningUserId == null) ? 0 : owningUserId.hashCode());
-		return result;
+	public boolean equals(final Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		final Recipe recipe = (Recipe) o;
+		return Objects.equals(id, recipe.id) && Objects.equals(name, recipe.name) && Objects.equals(content,
+				recipe.content) && Objects.equals(owningUserId, recipe.owningUserId) && Objects.equals(imageUrl,
+				recipe.imageUrl);
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		final Recipe other = (Recipe) obj;
-		if (content == null) {
-			if (other.content != null) {
-				return false;
-			}
-		} else if (!content.equals(other.content)) {
-			return false;
-		}
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
-			return false;
-		}
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		if (owningUserId == null) {
-			if (other.owningUserId != null) {
-				return false;
-			}
-		} else if (!owningUserId.equals(other.owningUserId)) {
-			return false;
-		}
-		return true;
+	public int hashCode() {
+		return Objects.hash(id, name, content, owningUserId, imageUrl);
 	}
 
 	@Override
 	public String toString() {
-		return "Recipe [id=" + id + ", name=" + name + ", content=" + content + ", userId=" + owningUserId + "]";
+		return com.google.common.base.Objects.toStringHelper(this).add("id", id).add("name", name).add("content",
+				content).add("owningUserId", owningUserId).add("imageUrl", imageUrl).toString();
 	}
 }

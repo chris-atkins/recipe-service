@@ -52,23 +52,24 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	public void run(final RecipeServiceConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
 		final MongoClient mongoClient = connectToDatabase();
-//		environment.getApplicationContext().addFilter(MyFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
 
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
 		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(mongoClient);
-		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(mongoClient, recipeBookEndpoint);
+		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(recipeBookEndpoint, recipeRepository);
+		final RecipeImageEndpoint recipeImageEndpoint = initializeRecipeImageEndpoint(recipeRepository);
 
+		environment.jersey().register(MultiPartFeature.class);
 		environment.jersey().register(recipeEndpoint);
 		environment.jersey().register(userEndpoint);
 		environment.jersey().register(recipeBookEndpoint);
-		environment.jersey().register(MultiPartFeature.class);
-		environment.jersey().register(new RecipeImageEndpoint());
+		environment.jersey().register(recipeImageEndpoint);
 
+//		environment.getApplicationContext().addFilter(MyFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 //		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");  //Allows CORS headers to be returned
 	}
 
-	private RecipeEndpoint initializeRecipeEndpoint(final MongoClient mongoClient, final RecipeBookEndpoint recipeBookEndpoint) {
-		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
+	private RecipeEndpoint initializeRecipeEndpoint(final RecipeBookEndpoint recipeBookEndpoint, final RecipeRepository recipeRepository) {
 		final RecipeSearchStringParser recipeSearchStringParser = new RecipeSearchStringParser();
 		final RecipeTranslator recipeTranslator = new RecipeTranslator();
 		final RecipeBookToRecipeTranslator recipeBookToRecipeTranslator = new RecipeBookToRecipeTranslator();
@@ -85,6 +86,10 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		final RecipeBookRepository recipeBookRepository = new RecipeBookRepository(mongoClient);
 		final RecipeBookTranslator recipeBookTranslator = new RecipeBookTranslator();
 		return new RecipeBookEndpoint(recipeBookRepository, recipeBookTranslator);
+	}
+
+	private RecipeImageEndpoint initializeRecipeImageEndpoint(final RecipeRepository recipeRepository) {
+		return new RecipeImageEndpoint(recipeRepository);
 	}
 
 	private MongoClient connectToDatabase() {

@@ -1,18 +1,17 @@
 package com.poorknight.recipe;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.poorknight.recipe.Recipe.RecipeId;
 import com.poorknight.recipe.Recipe.UserId;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecipeTranslator {
 
 	public ApiRecipe toApi(final Recipe recipe, final UserId requestingUserId) {
 		final boolean isEditable = determineIsEditable(recipe.getOwningUserId(), requestingUserId);
-		return new ApiRecipe(recipe.getId().getValue(), recipe.getName(), recipe.getContent(), isEditable);
+		return new ApiRecipe(recipe.getId().getValue(), recipe.getName(), recipe.getContent(), isEditable, recipe.getImageUrl());
 	}
 
 	private boolean determineIsEditable(final UserId owningUserId, final UserId requestingUserId) {

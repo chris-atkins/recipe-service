@@ -134,12 +134,14 @@ public class RecipeRepository {
 	private Document toDocumentForSave(final Recipe recipe) {
 		return new Document("name", recipe.getName()) //
 				.append("content", recipe.getContent()) //
-				.append("owningUserId", recipe.getOwningUserId().getValue());
+				.append("owningUserId", recipe.getOwningUserId().getValue())
+				.append("imageUrl", recipe.getImageUrl());
 	}
 
 	private Document toDocumentForUpdate(final Recipe recipe) {
 		return new Document("name", recipe.getName()) //
-				.append("content", recipe.getContent());
+				.append("content", recipe.getContent())
+				.append("imageUrl", recipe.getImageUrl());
 	}
 
 	private Recipe toRecipe(final Document document) {
@@ -151,8 +153,9 @@ public class RecipeRepository {
 		final String name = document.getString("name");
 		final String content = document.getString("content");
 		final String owningUserId = document.getString("owningUserId");
+		final String imageUrl = document.getString("imageUrl");
 
-		return new Recipe(new RecipeId(id.toHexString()), name, content, new UserId(owningUserId));
+		return new Recipe(new RecipeId(id.toHexString()), name, content, new UserId(owningUserId), imageUrl);
 	}
 
 	private List<Recipe> toRecipeList(final MongoCursor<Document> recipeIterator) {
