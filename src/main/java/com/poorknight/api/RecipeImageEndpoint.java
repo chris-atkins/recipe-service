@@ -69,6 +69,13 @@ public class RecipeImageEndpoint {
 	@Path("/{recipeId}/image/{imageId}")
 	public void deleteImage(@PathParam("recipeId") final String recipeId, @PathParam("imageId") final String imageId) {
 
+		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+		s3.deleteObject(BUCKET_NAME, imageId);
+
+		final Recipe recipe = recipeRepository.findRecipeById(new Recipe.RecipeId(recipeId));
+		Recipe updatedRecipe = new Recipe(recipe.getId(), recipe.getName(), recipe.getContent(), recipe.getOwningUserId(), null);
+		recipeRepository.updateRecipe(updatedRecipe);
+
 	}
 
 //	private String _corsHeaders;

@@ -104,14 +104,14 @@ public class RecipeImageEndpointTest {
 
 	@Test
 	public void deleteRecipeCoordinatesCorrectly() throws Exception {
-//		final Recipe recipeFromRepository = buildRecipeWithImageUrl("someUrl");
-//		final String imageId = RandomStringUtils.random(25);
-//		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipeFromRepository);
-//
-//		endpoint.deleteImage(recipeId, imageId);
-//
-//		verify(repository).updateRecipe(buildRecipeWithImageUrl(null));
-//		verify(s3).deleteObject(bucketName, imageId);
+		final String imageId = RandomStringUtils.random(25);
+		final Recipe recipeFromRepository = buildRecipeWithImageUrl(new RecipeImage(imageId, "someUrl"));
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipeFromRepository);
+
+		endpoint.deleteImage(recipeId, imageId);
+
+		verify(repository).updateRecipe(buildRecipeWithImageUrl(null));
+		verify(s3).deleteObject(bucketName, imageId);
 	}
 
 	private Recipe buildRecipeWithImageUrl(RecipeImage image) {
