@@ -31,6 +31,46 @@ public class RecipeImageEndpoint {
 		this.recipeRepository = recipeRepository;
 	}
 
+	@POST
+	@Timed(name = "putRecipe")
+	@Path("/{id}/image")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public Response postRecipeImage(@PathParam("id") final String recipeId, @FormDataParam("file") InputStream imageInputStream) {
+		final String imageId = UUID.randomUUID().toString();
+		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+
+		s3.putObject(buildPutImageRequest(imageInputStream, imageId));
+		final URL url = s3.getUrl(BUCKET_NAME, imageId);
+		final String imageUrl = makeUrlHttp(url);
+
+		final Recipe recipe = recipeRepository.findRecipeById(new Recipe.RecipeId(recipeId));
+		Recipe updatedRecipe = new Recipe(recipe.getId(), recipe.getName(), recipe.getContent(), recipe.getOwningUserId(), new RecipeImage(imageId, imageUrl));
+		recipeRepository.updateRecipe(updatedRecipe);
+
+		final RecipeImage recipeImage = new RecipeImage(imageId, imageUrl);
+		return Response.ok(recipeImage).build();
+//		return makeCORS(Response.ok(recipeImage);
+	}
+
+	private PutObjectRequest buildPutImageRequest(final InputStream imageInputStream, final String key) {
+		final PutObjectRequest request = new PutObjectRequest(BUCKET_NAME, key, imageInputStream, new ObjectMetadata());
+		request.setCannedAcl(CannedAccessControlList.PublicRead);
+		return request;
+	}
+
+	private String makeUrlHttp(final URL url) {
+		final String original = url.toExternalForm();
+		return StringUtils.replace(original, "https:", "http:");
+	}
+
+	@DELETE
+	@Timed(name = "putRecipe")
+	@Path("/{recipeId}/image/{imageId}")
+	public void deleteImage(@PathParam("recipeId") final String recipeId, @PathParam("imageId") final String imageId) {
+
+	}
+
 //	private String _corsHeaders;
 //	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -59,36 +99,4 @@ public class RecipeImageEndpoint {
 //		return makeCORS(req, _corsHeaders);
 //	}
 
-	@POST
-	@Timed(name = "putRecipe")
-	@Path("/{id}/image")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response postRecipeImage(@PathParam("id") final String recipeId, @FormDataParam("file") InputStream imageInputStream) {
-		final String imageId = UUID.randomUUID().toString();
-		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
-
-		s3.putObject(buildPutImageRequest(imageInputStream, imageId));
-		final URL url = s3.getUrl(BUCKET_NAME, imageId);
-		final String imageUrl = makeUrlHttp(url);
-
-		final Recipe recipe = recipeRepository.findRecipeById(new Recipe.RecipeId(recipeId));
-		Recipe updatedRecipe = new Recipe(recipe.getId(), recipe.getName(), recipe.getContent(), recipe.getOwningUserId(), imageUrl);
-		recipeRepository.updateRecipe(updatedRecipe);
-
-		final RecipeImage recipeImage = new RecipeImage(imageId, imageUrl);
-		return Response.ok(recipeImage).build();
-//		return makeCORS(Response.ok(recipeImage);
-	}
-
-	private PutObjectRequest buildPutImageRequest(final InputStream imageInputStream, final String key) {
-		final PutObjectRequest request = new PutObjectRequest(BUCKET_NAME, key, imageInputStream, new ObjectMetadata());
-		request.setCannedAcl(CannedAccessControlList.PublicRead);
-		return request;
-	}
-
-	private String makeUrlHttp(final URL url) {
-		final String original = url.toExternalForm();
-		return StringUtils.replace(original, "https:", "http:");
-	}
 }

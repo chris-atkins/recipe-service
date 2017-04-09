@@ -9,26 +9,26 @@ public class Recipe {
 	private final String name;
 	private final String content;
 	private final UserId owningUserId;
-	private final String imageUrl;
+	private final RecipeImage image;
 
 	public Recipe(final String name, final String content, final UserId owningUserId) {
 		this(null, name, content, owningUserId, null);
 	}
 
-	public Recipe(final String name, final String content, final UserId owningUserId, String imageUrl) {
-		this(null, name, content, owningUserId, imageUrl);
+	public Recipe(final String name, final String content, final UserId owningUserId, RecipeImage image) {
+		this(null, name, content, owningUserId, image);
 	}
 
 	public Recipe(final RecipeId id, final String name, final String content, final UserId owningUserId) {
 		this(id, name, content, owningUserId, null);
 	}
 
-	public Recipe(final RecipeId id, final String name, final String content, final UserId owningUserId, String imageUrl) {
+	public Recipe(final RecipeId id, final String name, final String content, final UserId owningUserId, RecipeImage image) {
 		this.id = id;
 		this.name = name;
 		this.content = content;
 		this.owningUserId = owningUserId;
-		this.imageUrl = imageUrl;
+		this.image = image;
 	}
 
 	public RecipeId getId() {
@@ -47,8 +47,8 @@ public class Recipe {
 		return this.owningUserId;
 	}
 
-	public String getImageUrl() {
-		return this.imageUrl;
+	public RecipeImage getImage() {
+		return this.image;
 	}
 
 	public static class RecipeId {
@@ -153,18 +153,18 @@ public class Recipe {
 		if (o == null || getClass() != o.getClass()) return false;
 		final Recipe recipe = (Recipe) o;
 		return Objects.equals(id, recipe.id) && Objects.equals(name, recipe.name) && Objects.equals(content,
-				recipe.content) && Objects.equals(owningUserId, recipe.owningUserId) && Objects.equals(imageUrl,
-				recipe.imageUrl);
+				recipe.content) && Objects.equals(owningUserId, recipe.owningUserId) && Objects.equals(image,
+				recipe.image);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name, content, owningUserId, imageUrl);
+		return Objects.hash(id, name, content, owningUserId, image);
 	}
 
 	@Override
 	public String toString() {
 		return com.google.common.base.Objects.toStringHelper(this).add("id", id).add("name", name).add("content",
-				content).add("owningUserId", owningUserId).add("imageUrl", imageUrl).toString();
+				content).add("owningUserId", owningUserId).add("image", image).toString();
 	}
 }

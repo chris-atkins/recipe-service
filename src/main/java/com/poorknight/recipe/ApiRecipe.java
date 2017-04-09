@@ -8,7 +8,7 @@ public class ApiRecipe {
 	private String recipeName;
 	private String recipeContent;
 	private boolean editable;
-	private String imageUrl;
+	private RecipeImage image;
 
 	public ApiRecipe() {
 		this(null, null, null, false);
@@ -22,13 +22,13 @@ public class ApiRecipe {
 		this(recipeId, recipeName, recipeContent, editable, null);
 	}
 
-	public ApiRecipe(final String recipeId, final String recipeName, final String recipeCcontent, final boolean editable, String imageUrl) {
+	public ApiRecipe(final String recipeId, final String recipeName, final String recipeCcontent, final boolean editable, RecipeImage image) {
 		super();
 		this.recipeId = recipeId;
 		this.recipeName = recipeName;
 		this.recipeContent = recipeCcontent;
 		this.editable = editable;
-		this.imageUrl = imageUrl;
+		this.image = image;
 	}
 
 	public String getRecipeId() {
@@ -63,12 +63,12 @@ public class ApiRecipe {
 		this.editable = editable;
 	}
 
-	public String getImageUrl() {
-		return imageUrl;
+	public RecipeImage getImage() {
+		return image;
 	}
 
-	public void setImageUrl(final String imageUrl) {
-		this.imageUrl = imageUrl;
+	public void setImage(final RecipeImage image) {
+		this.image = image;
 	}
 
 	@Override
@@ -78,20 +78,19 @@ public class ApiRecipe {
 		final ApiRecipe apiRecipe = (ApiRecipe) o;
 		return editable == apiRecipe.editable && Objects.equals(recipeId, apiRecipe.recipeId) && Objects.equals(
 				recipeName,
-				apiRecipe.recipeName) && Objects.equals(recipeContent, apiRecipe.recipeContent) && Objects.equals(
-				imageUrl,
-				apiRecipe.imageUrl);
+				apiRecipe.recipeName) && Objects.equals(recipeContent, apiRecipe.recipeContent) && Objects.equals(image,
+				apiRecipe.image);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(recipeId, recipeName, recipeContent, editable, imageUrl);
+		return Objects.hash(recipeId, recipeName, recipeContent, editable, image);
 	}
 
 	@Override
 	public String toString() {
 		return com.google.common.base.Objects.toStringHelper(this).add("recipeId", recipeId).add("recipeName",
-				recipeName).add("recipeContent", recipeContent).add("editable", editable).add("imageUrl",
-				imageUrl).toString();
+				recipeName).add("recipeContent", recipeContent).add("editable", editable).add("image",
+				image).toString();
 	}
 }

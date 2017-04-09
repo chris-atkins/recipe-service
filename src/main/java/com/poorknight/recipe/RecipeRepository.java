@@ -135,13 +135,21 @@ public class RecipeRepository {
 		return new Document("name", recipe.getName()) //
 				.append("content", recipe.getContent()) //
 				.append("owningUserId", recipe.getOwningUserId().getValue())
-				.append("imageUrl", recipe.getImageUrl());
+				.append("image", toDocumentForSave(recipe.getImage()));
+	}
+
+	private Document toDocumentForSave(final RecipeImage image) {
+		if (image == null) {
+			return null;
+		}
+		return new Document("imageId", image.getImageId()) //
+				.append("imageUrl", image.getImageUrl());
 	}
 
 	private Document toDocumentForUpdate(final Recipe recipe) {
 		return new Document("name", recipe.getName()) //
 				.append("content", recipe.getContent())
-				.append("imageUrl", recipe.getImageUrl());
+				.append("image", toDocumentForSave(recipe.getImage()));
 	}
 
 	private Recipe toRecipe(final Document document) {
@@ -153,9 +161,16 @@ public class RecipeRepository {
 		final String name = document.getString("name");
 		final String content = document.getString("content");
 		final String owningUserId = document.getString("owningUserId");
-		final String imageUrl = document.getString("imageUrl");
+		final RecipeImage image = findImageFromDocument((Document)document.get("image"));
 
-		return new Recipe(new RecipeId(id.toHexString()), name, content, new UserId(owningUserId), imageUrl);
+		return new Recipe(new RecipeId(id.toHexString()), name, content, new UserId(owningUserId), image);
+	}
+
+	private RecipeImage findImageFromDocument(final Document document) {
+		if (document == null) {
+			return null;
+		}
+		return new RecipeImage(document.getString("imageId"), document.getString("imageUrl"));
 	}
 
 	private List<Recipe> toRecipeList(final MongoCursor<Document> recipeIterator) {

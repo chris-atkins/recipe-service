@@ -20,6 +20,8 @@ public class RecipeTranslatorTest {
 	private static final String CONTENT_1 = RandomStringUtils.random(12);
 	private static final String USER_ID_1 = RandomStringUtils.random(10);
 	private static final String IMAGE_URL = RandomStringUtils.random(30);
+	private static final String IMAGE_ID = RandomStringUtils.random(25);
+	private static final RecipeImage RECIPE_IMAGE = new RecipeImage(IMAGE_ID, IMAGE_URL);
 
 	private static final String ID_2 = RandomStringUtils.random(12);
 	private static final String NAME_2 = RandomStringUtils.random(12);
@@ -30,14 +32,14 @@ public class RecipeTranslatorTest {
 
 	@Test
 	public void toApi_TranslatesSingleRecipe() throws Exception {
-		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1, new UserId(USER_ID_1), IMAGE_URL);
+		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1, new UserId(USER_ID_1), RECIPE_IMAGE);
 		final ApiRecipe translatedRecipe = translator.toApi(recipe, new UserId(USER_ID_1));
 
 		assertThat(translatedRecipe.getRecipeId()).isEqualTo(ID_1);
 		assertThat(translatedRecipe.getRecipeName()).isEqualTo(NAME_1);
 		assertThat(translatedRecipe.getRecipeContent()).isEqualTo(CONTENT_1);
 		assertThat(translatedRecipe.getEditable()).isEqualTo(true);
-		assertThat(translatedRecipe.getImageUrl()).isEqualTo(IMAGE_URL);
+		assertThat(translatedRecipe.getImage()).isEqualTo(RECIPE_IMAGE);
 	}
 
 	@Test
@@ -95,24 +97,26 @@ public class RecipeTranslatorTest {
 
 	@Test
 	public void toDomain_WithId_TranslatesCorrectly() throws Exception {
-		final ApiRecipe apiRecipe = new ApiRecipe(ID_1, NAME_1, CONTENT_1, false);
+		final ApiRecipe apiRecipe = new ApiRecipe(ID_1, NAME_1, CONTENT_1, false, RECIPE_IMAGE);
 		final Recipe translatedRecipe = translator.toDomain(apiRecipe, new UserId(USER_ID_1));
 
 		assertThat(translatedRecipe.getId().getValue()).isEqualTo(ID_1);
 		assertThat(translatedRecipe.getName()).isEqualTo(NAME_1);
 		assertThat(translatedRecipe.getContent()).isEqualTo(CONTENT_1);
 		assertThat(translatedRecipe.getOwningUserId()).isEqualTo(new UserId(USER_ID_1));
+		assertThat(translatedRecipe.getImage()).isEqualTo(RECIPE_IMAGE);
 	}
 
 	@Test
 	public void toDomain_WithNoId_TranslatesCorrectly() throws Exception {
-		final ApiRecipe apiRecipe = new ApiRecipe(null, NAME_1, CONTENT_1, true);
+		final ApiRecipe apiRecipe = new ApiRecipe(null, NAME_1, CONTENT_1, true, RECIPE_IMAGE);
 		final Recipe translatedRecipe = translator.toDomain(apiRecipe, new UserId(USER_ID_1));
 
 		assertThat(translatedRecipe.getId()).isNull();
 		assertThat(translatedRecipe.getName()).isEqualTo(NAME_1);
 		assertThat(translatedRecipe.getContent()).isEqualTo(CONTENT_1);
 		assertThat(translatedRecipe.getOwningUserId()).isEqualTo(new UserId(USER_ID_1));
+		assertThat(translatedRecipe.getImage()).isEqualTo(RECIPE_IMAGE);
 	}
 
 	@Test

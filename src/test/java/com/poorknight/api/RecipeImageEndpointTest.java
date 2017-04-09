@@ -35,10 +35,9 @@ public class RecipeImageEndpointTest {
 
 	private UUID uuid;
 	private String bucketName;
-	private String key;
+	private String imageId;
 	private AmazonS3 s3;
 	private InputStream imageInputStream;
-	private Recipe recipeBeforeImage;
 	private String recipeId;
 
 	@InjectMocks
@@ -58,7 +57,7 @@ public class RecipeImageEndpointTest {
 		uuid = UUID.randomUUID();
 		recipeId = RandomStringUtils.random(20);
 		bucketName = "myrecipeconnection.com.images";
-		key = uuid.toString();
+		imageId = uuid.toString();
 		s3 = Mockito.mock(AmazonS3.class);
 		imageInputStream = new ByteArrayInputStream("image".getBytes());
 
@@ -67,31 +66,34 @@ public class RecipeImageEndpointTest {
 
 		when(UUID.randomUUID()).thenReturn(uuid);
 		when(AmazonS3ClientBuilder.defaultClient()).thenReturn(s3);
-		when(s3.getUrl(bucketName, key)).thenReturn(new URL(HTTPS_URL));
-
-		Recipe recipeFromRepository = buildRecipeWithImageUrl(null);
-		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipeFromRepository);
+		when(s3.getUrl(bucketName, imageId)).thenReturn(new URL(HTTPS_URL));
 	}
 
 	@Test
 	public void endpointGeneratesAnIdForTheImageAndStoresItToAWSWWhileReplacingURLWithHttp() throws Exception {
+		Recipe recipeFromRepository = buildRecipeWithImageUrl(null);
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipeFromRepository);
+
 		Response postImageResponse = endpoint.postRecipeImage(recipeId, imageInputStream);
 
 		verify(s3).putObject(putObjectRequestArgumentCaptor.capture());
 		final PutObjectRequest s3RequestObject = putObjectRequestArgumentCaptor.getValue();
 		assertThat(s3RequestObject.getBucketName()).isEqualTo(bucketName);
-		assertThat(s3RequestObject.getKey()).isEqualTo(key);
+		assertThat(s3RequestObject.getKey()).isEqualTo(imageId);
 		assertThat(s3RequestObject.getInputStream()).isEqualTo(imageInputStream);
 		assertThat(s3RequestObject.getCannedAcl()).isEqualTo(CannedAccessControlList.PublicRead);
 
 		final RecipeImage imageResponse = (RecipeImage) postImageResponse.getEntity();
-		assertThat(imageResponse.getImageId()).isEqualTo(key);
+		assertThat(imageResponse.getImageId()).isEqualTo(imageId);
 		assertThat(imageResponse.getImageUrl()).isEqualTo(HTTP_ONLY_URL);
 	}
 
 	@Test
 	public void imageUrlIsSavedToTheRecipe() throws Exception {
-		Recipe expectedRecipeBeingSaved = buildRecipeWithImageUrl(HTTP_ONLY_URL);
+		Recipe recipeFromRepository = buildRecipeWithImageUrl(null);
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipeFromRepository);
+
+		Recipe expectedRecipeBeingSaved = buildRecipeWithImageUrl(new RecipeImage(imageId, HTTP_ONLY_URL));
 
 		endpoint.postRecipeImage(recipeId, imageInputStream);
 
@@ -100,7 +102,19 @@ public class RecipeImageEndpointTest {
 		assertThat(recipeBeingSaved).isEqualTo(expectedRecipeBeingSaved);
 	}
 
-	private Recipe buildRecipeWithImageUrl(String imageUrl) {
-		return new Recipe(new Recipe.RecipeId("hi"), "recipeName", "recipeContent", new Recipe.UserId("itsme"), imageUrl);
+	@Test
+	public void deleteRecipeCoordinatesCorrectly() throws Exception {
+//		final Recipe recipeFromRepository = buildRecipeWithImageUrl("someUrl");
+//		final String imageId = RandomStringUtils.random(25);
+//		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipeFromRepository);
+//
+//		endpoint.deleteImage(recipeId, imageId);
+//
+//		verify(repository).updateRecipe(buildRecipeWithImageUrl(null));
+//		verify(s3).deleteObject(bucketName, imageId);
+	}
+
+	private Recipe buildRecipeWithImageUrl(RecipeImage image) {
+		return new Recipe(new Recipe.RecipeId("hi"), "recipeName", "recipeContent", new Recipe.UserId("itsme"), image);
 	}
 }

@@ -11,7 +11,7 @@ public class RecipeTranslator {
 
 	public ApiRecipe toApi(final Recipe recipe, final UserId requestingUserId) {
 		final boolean isEditable = determineIsEditable(recipe.getOwningUserId(), requestingUserId);
-		return new ApiRecipe(recipe.getId().getValue(), recipe.getName(), recipe.getContent(), isEditable, recipe.getImageUrl());
+		return new ApiRecipe(recipe.getId().getValue(), recipe.getName(), recipe.getContent(), isEditable, recipe.getImage());
 	}
 
 	private boolean determineIsEditable(final UserId owningUserId, final UserId requestingUserId) {
@@ -31,7 +31,7 @@ public class RecipeTranslator {
 
 	public Recipe toDomain(final ApiRecipe apiRecipe, final UserId userId) {
 		final RecipeId recipeId = recipeIdFor(apiRecipe.getRecipeId());
-		return new Recipe(recipeId, apiRecipe.getRecipeName(), apiRecipe.getRecipeContent(), userId);
+		return new Recipe(recipeId, apiRecipe.getRecipeName(), apiRecipe.getRecipeContent(), userId, apiRecipe.getImage());
 	}
 
 	public RecipeId recipeIdFor(final String id) {
