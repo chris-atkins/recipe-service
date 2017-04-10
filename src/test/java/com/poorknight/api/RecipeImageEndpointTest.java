@@ -16,6 +16,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -23,6 +24,7 @@ import java.net.URL;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -74,7 +76,7 @@ public class RecipeImageEndpointTest {
 		Recipe recipeFromRepository = buildRecipeWithImageUrl(null);
 		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipeFromRepository);
 
-		Response postImageResponse = endpoint.postRecipeImage(recipeId, imageInputStream);
+		Response postImageResponse = endpoint.postRecipeImage(recipeId, imageInputStream, "owningUser");
 
 		verify(s3).putObject(putObjectRequestArgumentCaptor.capture());
 		final PutObjectRequest s3RequestObject = putObjectRequestArgumentCaptor.getValue();
@@ -95,7 +97,7 @@ public class RecipeImageEndpointTest {
 
 		Recipe expectedRecipeBeingSaved = buildRecipeWithImageUrl(new RecipeImage(imageId, HTTP_ONLY_URL));
 
-		endpoint.postRecipeImage(recipeId, imageInputStream);
+		endpoint.postRecipeImage(recipeId, imageInputStream, "owningUser");
 
 		verify(repository).updateRecipe(recipeCaptor.capture());
 		final Recipe recipeBeingSaved = recipeCaptor.getValue();
@@ -103,18 +105,160 @@ public class RecipeImageEndpointTest {
 	}
 
 	@Test
+	public void throws404IfRecipeIdDoesNotExist() throws Exception {
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(null);
+
+		try {
+			endpoint.postRecipeImage(recipeId, imageInputStream, "owningUser");
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(404);
+			assertThat(e.getMessage()).isEqualTo("No recipe exists for the id: " + recipeId);
+		}
+	}
+
+	@Test
+	public void throws401ExceptionIfRequestingUserDoesNotOwnTheRecipe() throws Exception {
+		final Recipe recipe = buildRecipeForUser("owningUser");
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipe);
+
+		try {
+			endpoint.postRecipeImage(recipeId, imageInputStream, "differentUser");
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+			assertThat(e.getMessage()).isEqualTo("Only the recipe owner may upload an image for that recipe.");
+		}
+	}
+
+	@Test
+	public void throws401ExceptionIfRequestingUserIsNull() throws Exception {
+		final Recipe recipe = buildRecipeForUser("owningUser");
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipe);
+
+		try {
+			endpoint.postRecipeImage(recipeId, imageInputStream, null);
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+			assertThat(e.getMessage()).isEqualTo("You must be an authenticated user in order to attempt to upload an image.");
+		}
+	}
+
+	@Test
+	public void throws401ExceptionIfRequestingUserIsEmpty() throws Exception {
+		final Recipe recipe = buildRecipeForUser("owningUser");
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipe);
+
+		try {
+			endpoint.postRecipeImage(recipeId, imageInputStream, "");
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+			assertThat(e.getMessage()).isEqualTo("You must be an authenticated user in order to attempt to upload an image.");
+		}
+	}
+
+
+	@Test
 	public void deleteRecipeCoordinatesCorrectly() throws Exception {
 		final String imageId = RandomStringUtils.random(25);
 		final Recipe recipeFromRepository = buildRecipeWithImageUrl(new RecipeImage(imageId, "someUrl"));
 		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipeFromRepository);
 
-		endpoint.deleteImage(recipeId, imageId);
+		endpoint.deleteRecipeImage(recipeId, imageId, "owningUser");
 
 		verify(repository).updateRecipe(buildRecipeWithImageUrl(null));
 		verify(s3).deleteObject(bucketName, imageId);
 	}
+	@Test
+	public void deleteThrows401ExceptionIfRequestingUserDoesNotOwnTheRecipe() throws Exception {
+		final Recipe recipe = buildRecipeForUser("owningUser");
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipe);
+
+		try {
+			endpoint.deleteRecipeImage(recipeId, imageId, "differentUser");
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+			assertThat(e.getMessage()).isEqualTo("Only the recipe owner may delete an image for that recipe.");
+		}
+	}
+
+	@Test
+	public void deleteThrows401ExceptionIfRequestingUserIsNull() throws Exception {
+		final Recipe recipe = buildRecipeForUser("owningUser");
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipe);
+
+		try {
+			endpoint.deleteRecipeImage(recipeId, imageId, null);
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+			assertThat(e.getMessage()).isEqualTo("You must be an authenticated user in order to attempt to delete an image.");
+		}
+	}
+
+	@Test
+	public void deleteThrows401ExceptionIfRequestingUserIsEmpty() throws Exception {
+		final Recipe recipe = buildRecipeForUser("owningUser");
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipe);
+
+		try {
+			endpoint.deleteRecipeImage(recipeId, imageId, "");
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+			assertThat(e.getMessage()).isEqualTo("You must be an authenticated user in order to attempt to delete an image.");
+		}
+	}
+
+	@Test
+	public void deleteThrows404IfRecipeIdDoesNotExist() throws Exception {
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(null);
+
+		try {
+			endpoint.deleteRecipeImage(recipeId, imageId, "owningUser");
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(404);
+			assertThat(e.getMessage()).isEqualTo("No recipe exists for the id: " + recipeId);
+		}
+	}
+
+	@Test
+	public void deleteThrows404IfImageIdDoesNotExist() throws Exception {
+		final Recipe recipe = buildRecipeWithImageUrl(new RecipeImage("existingId", "existingUrl"));
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipe);
+
+		try {
+			endpoint.deleteRecipeImage(recipeId, "nonExistantId", "owningUser");
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(404);
+			assertThat(e.getMessage()).isEqualTo("No image exists for the id: nonExistantId");
+		}
+	}
+
+	@Test
+	public void deleteThrows404IfRecipeHasNoImage() throws Exception {
+		final Recipe recipe = buildRecipeWithImageUrl(null);
+		when(repository.findRecipeById(new Recipe.RecipeId(recipeId))).thenReturn(recipe);
+
+		try {
+			endpoint.deleteRecipeImage(recipeId, "anyId", "owningUser");
+			fail("expecting exception");
+		} catch(WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(404);
+			assertThat(e.getMessage()).isEqualTo("No image exists for the id: anyId");
+		}
+	}
 
 	private Recipe buildRecipeWithImageUrl(RecipeImage image) {
-		return new Recipe(new Recipe.RecipeId("hi"), "recipeName", "recipeContent", new Recipe.UserId("itsme"), image);
+		return new Recipe(new Recipe.RecipeId("hi"), "recipeName", "recipeContent", new Recipe.UserId("owningUser"), image);
+	}
+
+	private Recipe buildRecipeForUser(final String owningUser) {
+		return new Recipe(new Recipe.RecipeId("hi"), "recipeName", "recipeContent", new Recipe.UserId(owningUser), null);
 	}
 }
