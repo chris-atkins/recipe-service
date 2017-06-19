@@ -11,11 +11,16 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import java.io.InputStream;
 import java.net.URL;
 
-class ImageS3Repository {
+public class ImageS3Repository {
 
 	private static final String BUCKET_NAME = "myrecipeconnection.com.images";
 
-	public String saveNewImage(final InputStream imageInputStream, final String imageId) {
+	protected void deleteImage(final String imageId) {
+		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+		s3.deleteObject(BUCKET_NAME, imageId);
+	}
+
+	protected String saveNewImage(final InputStream imageInputStream, final String imageId) {
 		final URL url = uploadImageToS3(imageInputStream, imageId);
 		return makeUrlHttp(url);
 	}

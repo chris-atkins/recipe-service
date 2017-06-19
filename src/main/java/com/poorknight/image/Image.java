@@ -9,10 +9,6 @@ public class Image {
 	private String imageUrl;
 	private String owningUserId;
 
-	public Image() {
-
-	}
-
 	public Image(final String imageId, final String imageUrl, final String owningUserId) {
 		this.imageId = imageId;
 		this.imageUrl = imageUrl;
@@ -23,24 +19,12 @@ public class Image {
 		return imageId;
 	}
 
-	public void setImageId(final String imageId) {
-		this.imageId = imageId;
-	}
-
 	public String getImageUrl() {
 		return imageUrl;
 	}
 
-	public void setImageUrl(final String imageUrl) {
-		this.imageUrl = imageUrl;
-	}
-
 	public String getOwningUserId() {
 		return owningUserId;
-	}
-
-	public void setOwningUserId(final String owningUserId) {
-		this.owningUserId = owningUserId;
 	}
 
 	@Override

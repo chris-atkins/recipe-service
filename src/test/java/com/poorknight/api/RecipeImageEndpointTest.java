@@ -159,7 +159,6 @@ public class RecipeImageEndpointTest {
 		}
 	}
 
-
 	@Test
 	public void deleteRecipeCoordinatesCorrectly() throws Exception {
 		final String imageId = RandomStringUtils.random(25);
@@ -171,6 +170,7 @@ public class RecipeImageEndpointTest {
 		verify(repository).updateRecipe(buildRecipeWithImageUrl(null));
 		verify(s3).deleteObject(bucketName, imageId);
 	}
+
 	@Test
 	public void deleteThrows401ExceptionIfRequestingUserDoesNotOwnTheRecipe() throws Exception {
 		final Recipe recipe = buildRecipeForUser("owningUser");

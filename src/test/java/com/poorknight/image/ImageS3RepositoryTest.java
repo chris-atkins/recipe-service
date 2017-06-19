@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +32,6 @@ public class ImageS3RepositoryTest {
 	private static final String HTTPS_URL = "https://helloThere";
 	private static final String HTTP_ONLY_URL = "http://helloThere";
 
-	private UUID uuid;
 	private String bucketName;
 	private String imageId;
 	private AmazonS3 s3;
@@ -45,7 +45,7 @@ public class ImageS3RepositoryTest {
 
 	@Before
 	public void setUp() throws Exception {
-		uuid = UUID.randomUUID();
+		final UUID uuid = UUID.randomUUID();
 		bucketName = "myrecipeconnection.com.images";
 		imageId = uuid.toString();
 		s3 = Mockito.mock(AmazonS3.class);
@@ -59,7 +59,7 @@ public class ImageS3RepositoryTest {
 
 	@Test
 	public void sameImageStoresItToAWSWWhileReplacingURLWithHttp() throws Exception {
-		String imageUrl = repository.saveNewImage(imageInputStream, imageId);
+		final String imageUrl = repository.saveNewImage(imageInputStream, imageId);
 
 		verify(s3).putObject(putObjectRequestArgumentCaptor.capture());
 		final PutObjectRequest s3RequestObject = putObjectRequestArgumentCaptor.getValue();
@@ -71,4 +71,10 @@ public class ImageS3RepositoryTest {
 		assertThat(imageUrl).isEqualTo(HTTP_ONLY_URL);
 	}
 
+	@Test
+	public void deleteRecipeCoordinatesCorrectly() throws Exception {
+		final String imageId = RandomStringUtils.random(20);
+		repository.deleteImage(imageId);
+		verify(s3).deleteObject(bucketName, imageId);
+	}
 }
