@@ -18,7 +18,7 @@ public class ImageRepository {
 	public Image saveNewImage(final InputStream imageInputStream, final String owningUser) {
 		final String imageId = UUID.randomUUID().toString();
 		final String imageUrl = s3Repository.saveNewImage(imageInputStream, imageId);
-		return dbRepository.saveNewImage(imageId, imageUrl, owningUser);
+		return dbRepository.saveNewImage(new Image(imageId, imageUrl, owningUser));
 	}
 
 	public Image findImage(final String imageId) {
@@ -43,5 +43,4 @@ public class ImageRepository {
 			throw new ImageDeleteNotAllowedException("Requesting user does not own the image, so it cannot be deleted.");
 		}
 	}
-
 }

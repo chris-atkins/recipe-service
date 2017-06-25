@@ -4,6 +4,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.poorknight.application.init.MongoSetup;
+import com.poorknight.image.ImageCollectionInitializer;
 import com.poorknight.recipe.RecipeCollectionInitializer;
 import com.poorknight.recipebook.RecipeBookCollectionInitializer;
 import com.poorknight.user.UserCollectionInitializer;
@@ -42,6 +43,15 @@ public class MongoSetupHelper {
 		return mongo;
 	}
 
+	public static void cleanupMongo() {
+		try {
+			mongo.close();
+		} finally {
+			mongod.stop();
+			mongodExecutable.stop();
+		}
+	}
+
 	public static void deleteAllRecipes() {
 		final MongoDatabase database = mongo.getDatabase(MongoSetup.DB_NAME);
 		final MongoCollection<Document> collection = database.getCollection(RecipeCollectionInitializer.RECIPE_COLLECTION);
@@ -54,18 +64,15 @@ public class MongoSetupHelper {
 		collection.deleteMany(new Document());
 	}
 
-	public static void cleanupMongo() {
-		try {
-			mongo.close();
-		} finally {
-			mongod.stop();
-			mongodExecutable.stop();
-		}
-	}
-
 	public static void deleteAllRecipeBooks() {
 		final MongoDatabase database = mongo.getDatabase(MongoSetup.DB_NAME);
 		final MongoCollection<Document> collection = database.getCollection(RecipeBookCollectionInitializer.RECIPE_BOOK_COLLECTION);
+		collection.deleteMany(new Document());
+	}
+
+	public static void deleteAllImages() {
+		final MongoDatabase database = mongo.getDatabase(MongoSetup.DB_NAME);
+		final MongoCollection<Document> collection = database.getCollection(ImageCollectionInitializer.IMAGE_COLLECTION);
 		collection.deleteMany(new Document());
 	}
 }

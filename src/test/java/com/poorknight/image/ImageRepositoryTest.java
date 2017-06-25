@@ -35,7 +35,6 @@ public class ImageRepositoryTest {
 	@Before
 	public void setUp() throws Exception {
 		PowerMockito.mockStatic(UUID.class);
-
 	}
 
 	@Test
@@ -49,7 +48,7 @@ public class ImageRepositoryTest {
 
 		when(UUID.randomUUID()).thenReturn(uuid);
 		when(s3Repository.saveNewImage(imageInputStream, imageId)).thenReturn(imageUrl);
-		when(dbRepository.saveNewImage(imageId, imageUrl, userId)).thenReturn(expectedImage);
+		when(dbRepository.saveNewImage(new Image(imageId, imageUrl, userId))).thenReturn(expectedImage);
 
 		final Image savedImage = repository.saveNewImage(imageInputStream, userId);
 
@@ -92,7 +91,7 @@ public class ImageRepositoryTest {
 			repository.deleteImage(imageId, "other user");
 
 			fail("expecting exception");
-		} catch (ImageDeleteNotAllowedException e) {
+		} catch (final ImageDeleteNotAllowedException e) {
 			assertThat(e.getMessage()).isEqualTo("Requesting user does not own the image, so it cannot be deleted.");
 			assertThat(e.getResponse().getStatus()).isEqualTo(403);
 		}
@@ -103,7 +102,7 @@ public class ImageRepositoryTest {
 		try {
 			repository.deleteImage("id", null);
 			fail("expecting exception");
-		} catch (ImageDeleteNotAllowedException e) {
+		} catch (final ImageDeleteNotAllowedException e) {
 			assertThat(e.getMessage()).isEqualTo("No requesting user has been specified when requesting an image be deleted, so it cannot be deleted.");
 			assertThat(e.getResponse().getStatus()).isEqualTo(403);
 		}
@@ -114,7 +113,7 @@ public class ImageRepositoryTest {
 		try {
 			repository.deleteImage("id", "");
 			fail("expecting exception");
-		} catch (ImageDeleteNotAllowedException e) {
+		} catch (final ImageDeleteNotAllowedException e) {
 			assertThat(e.getMessage()).isEqualTo("No requesting user has been specified when requesting an image be deleted, so it cannot be deleted.");
 			assertThat(e.getResponse().getStatus()).isEqualTo(403);
 		}
