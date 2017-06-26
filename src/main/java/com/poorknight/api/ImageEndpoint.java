@@ -21,6 +21,7 @@ public class ImageEndpoint {
 
 	@POST
 	@Timed(name = "postImage")
+	@Path("/")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public ApiImage postImage(@FormDataParam("file") final InputStream imageInputStream, @HeaderParam("RequestingUser") final String requestingUserIdString) {

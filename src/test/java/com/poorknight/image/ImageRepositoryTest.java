@@ -91,7 +91,7 @@ public class ImageRepositoryTest {
 			repository.deleteImage(imageId, "other user");
 
 			fail("expecting exception");
-		} catch (final ImageDeleteNotAllowedException e) {
+		} catch (final ImageOperationNotAllowedException e) {
 			assertThat(e.getMessage()).isEqualTo("Requesting user does not own the image, so it cannot be deleted.");
 			assertThat(e.getResponse().getStatus()).isEqualTo(403);
 		}
@@ -102,9 +102,9 @@ public class ImageRepositoryTest {
 		try {
 			repository.deleteImage("id", null);
 			fail("expecting exception");
-		} catch (final ImageDeleteNotAllowedException e) {
+		} catch (final ImageOperationNotAllowedException e) {
 			assertThat(e.getMessage()).isEqualTo("No requesting user has been specified when requesting an image be deleted, so it cannot be deleted.");
-			assertThat(e.getResponse().getStatus()).isEqualTo(403);
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
 		}
 	}
 
@@ -113,10 +113,33 @@ public class ImageRepositoryTest {
 		try {
 			repository.deleteImage("id", "");
 			fail("expecting exception");
-		} catch (final ImageDeleteNotAllowedException e) {
+		} catch (final ImageOperationNotAllowedException e) {
 			assertThat(e.getMessage()).isEqualTo("No requesting user has been specified when requesting an image be deleted, so it cannot be deleted.");
-			assertThat(e.getResponse().getStatus()).isEqualTo(403);
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
 		}
 	}
 
+	@Test
+	public void saveWillThrowExceptionIfUserIsNull() throws Exception {
+		try {
+			final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes());
+			repository.saveNewImage(imageInputStream, null);
+			fail("expecting exception");
+		} catch (final ImageOperationNotAllowedException e) {
+			assertThat(e.getMessage()).isEqualTo("No requesting user has been specified when requesting an image be saved, so it cannot be saved.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void saveWillThrowExceptionIfUserIsEmpty() throws Exception {
+		try {
+			final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes());
+			repository.saveNewImage(imageInputStream, "");
+			fail("expecting exception");
+		} catch (final ImageOperationNotAllowedException e) {
+			assertThat(e.getMessage()).isEqualTo("No requesting user has been specified when requesting an image be saved, so it cannot be saved.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
 }

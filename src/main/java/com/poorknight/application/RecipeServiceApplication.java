@@ -3,12 +3,12 @@ package com.poorknight.application;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
-import com.poorknight.api.RecipeBookEndpoint;
-import com.poorknight.api.RecipeEndpoint;
-import com.poorknight.api.RecipeImageEndpoint;
-import com.poorknight.api.UserEndpoint;
+import com.poorknight.api.*;
 import com.poorknight.application.init.MetricsInitializer;
 import com.poorknight.application.init.MongoSetup;
+import com.poorknight.image.ImageDBRepository;
+import com.poorknight.image.ImageRepository;
+import com.poorknight.image.ImageS3Repository;
 import com.poorknight.recipe.RecipeBookToRecipeTranslator;
 import com.poorknight.recipe.RecipeRepository;
 import com.poorknight.recipe.RecipeTranslator;
@@ -58,12 +58,14 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(mongoClient);
 		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(recipeBookEndpoint, recipeRepository);
 		final RecipeImageEndpoint recipeImageEndpoint = initializeRecipeImageEndpoint(recipeRepository);
+		final ImageEndpoint imageEndpoint = initializeImageEndpoint(mongoClient);
 
 		environment.jersey().register(MultiPartFeature.class);
 		environment.jersey().register(recipeEndpoint);
 		environment.jersey().register(userEndpoint);
 		environment.jersey().register(recipeBookEndpoint);
 		environment.jersey().register(recipeImageEndpoint);
+		environment.jersey().register(imageEndpoint);
 
 //		environment.getApplicationContext().addFilter(MyFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 //		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");  //Allows CORS headers to be returned
@@ -90,6 +92,13 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 
 	private RecipeImageEndpoint initializeRecipeImageEndpoint(final RecipeRepository recipeRepository) {
 		return new RecipeImageEndpoint(recipeRepository);
+	}
+
+	private ImageEndpoint initializeImageEndpoint(final MongoClient mongoClient) {
+		final ImageS3Repository s3Repository = new ImageS3Repository();
+		final ImageDBRepository dbRepository = new ImageDBRepository(mongoClient);
+		final ImageRepository imageRepository = new ImageRepository(s3Repository, dbRepository);
+		return new ImageEndpoint(imageRepository);
 	}
 
 	private MongoClient connectToDatabase() {
