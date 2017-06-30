@@ -5,9 +5,9 @@ import com.google.common.base.Objects;
 
 public class Image {
 
-	private String imageId;
-	private String imageUrl;
-	private String owningUserId;
+	private final String imageId;
+	private final String imageUrl;
+	private final String owningUserId;
 
 	public Image(final String imageId, final String imageUrl, final String owningUserId) {
 		this.imageId = imageId;

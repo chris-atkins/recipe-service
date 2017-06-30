@@ -57,14 +57,12 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
 		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(mongoClient);
 		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(recipeBookEndpoint, recipeRepository);
-		final RecipeImageEndpoint recipeImageEndpoint = initializeRecipeImageEndpoint(recipeRepository);
 		final ImageEndpoint imageEndpoint = initializeImageEndpoint(mongoClient);
 
 		environment.jersey().register(MultiPartFeature.class);
 		environment.jersey().register(recipeEndpoint);
 		environment.jersey().register(userEndpoint);
 		environment.jersey().register(recipeBookEndpoint);
-		environment.jersey().register(recipeImageEndpoint);
 		environment.jersey().register(imageEndpoint);
 
 //		environment.getApplicationContext().addFilter(MyFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
@@ -88,10 +86,6 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		final RecipeBookRepository recipeBookRepository = new RecipeBookRepository(mongoClient);
 		final RecipeBookTranslator recipeBookTranslator = new RecipeBookTranslator();
 		return new RecipeBookEndpoint(recipeBookRepository, recipeBookTranslator);
-	}
-
-	private RecipeImageEndpoint initializeRecipeImageEndpoint(final RecipeRepository recipeRepository) {
-		return new RecipeImageEndpoint(recipeRepository);
 	}
 
 	private ImageEndpoint initializeImageEndpoint(final MongoClient mongoClient) {
