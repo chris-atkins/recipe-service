@@ -19,8 +19,10 @@ import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ StatsDReporter.class, StatsD.class })
+@SuppressWarnings("PMD.AvoidUsingHardCodedIP")
 public class MetricsInitializerTest {
 
+	private static final String IP_ADDRESS = "192.168.99.100";
 	@Mock
 	private Bootstrap<RecipeServiceConfiguration> bootstrap;
 
@@ -45,13 +47,13 @@ public class MetricsInitializerTest {
 		when(bootstrap.getMetricRegistry()).thenReturn(metricRegistry);
 		when(StatsDReporter.forRegistry(metricRegistry)).thenReturn(builder);
 
-		when(builder.build("192.168.99.100", 8125)).thenReturn(reporter);
+		when(builder.build(IP_ADDRESS, 8125)).thenReturn(reporter);
 
 		when(builder.convertDurationsTo(Mockito.anyObject())).thenReturn(builder);
 		when(builder.convertRatesTo(Mockito.anyObject())).thenReturn(builder);
 		when(builder.prefixedWith(Mockito.anyString())).thenReturn(builder);
 
-		MetricsInitializer.initializeApplicationMetrics("192.168.99.100", "8125", bootstrap);
+		MetricsInitializer.initializeApplicationMetrics(IP_ADDRESS, "8125", bootstrap);
 
 		verify(reporter).start(5, TimeUnit.SECONDS);
 	}
@@ -64,7 +66,7 @@ public class MetricsInitializerTest {
 
 	@Test
 	public void metricsAreNOTInitialized_WhenPassedNullPort() throws Exception {
-		MetricsInitializer.initializeApplicationMetrics("192.168.99.100", null, bootstrap);
+		MetricsInitializer.initializeApplicationMetrics(IP_ADDRESS, null, bootstrap);
 		verifyZeroInteractions(bootstrap);
 	}
 
@@ -76,13 +78,13 @@ public class MetricsInitializerTest {
 
 	@Test
 	public void metricsAreNOTInitialized_WhenPassedEmptyPort() throws Exception {
-		MetricsInitializer.initializeApplicationMetrics("192.168.99.100", "", bootstrap);
+		MetricsInitializer.initializeApplicationMetrics(IP_ADDRESS, "", bootstrap);
 		verifyZeroInteractions(bootstrap);
 	}
 
 	@Test
 	public void metricsAreNOTInitialized_WhenPassedNonIntegerParsablePort() throws Exception {
-		MetricsInitializer.initializeApplicationMetrics("192.168.99.100", "abc", bootstrap);
+		MetricsInitializer.initializeApplicationMetrics(IP_ADDRESS, "abc", bootstrap);
 		verifyZeroInteractions(bootstrap);
 	}
 }

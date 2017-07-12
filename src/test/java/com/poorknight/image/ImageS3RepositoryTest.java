@@ -19,6 +19,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,7 +50,7 @@ public class ImageS3RepositoryTest {
 		bucketName = "myrecipeconnection.com.images";
 		imageId = uuid.toString();
 		s3 = Mockito.mock(AmazonS3.class);
-		imageInputStream = new ByteArrayInputStream("image".getBytes());
+		imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
 
 		PowerMockito.mockStatic(AmazonS3ClientBuilder.class);
 

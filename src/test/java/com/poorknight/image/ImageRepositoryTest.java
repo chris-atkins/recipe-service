@@ -12,6 +12,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.UUID;
 
 import static org.apache.commons.lang3.RandomStringUtils.random;
@@ -41,7 +42,7 @@ public class ImageRepositoryTest {
 	public void saveImageGeneratesAnIdForTheImageAndDelegatesToS3AndDBRepositories() throws Exception {
 		final UUID uuid = UUID.randomUUID();
 		final String imageId = uuid.toString();
-		final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes());
+		final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
 		final String imageUrl = random(50);
 		final String userId = random(20);
 		final Image expectedImage = new Image(random(5), random(10), random(15));
@@ -122,7 +123,7 @@ public class ImageRepositoryTest {
 	@Test
 	public void saveWillThrowExceptionIfUserIsNull() throws Exception {
 		try {
-			final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes());
+			final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
 			repository.saveNewImage(imageInputStream, null);
 			fail("expecting exception");
 		} catch (final ImageOperationNotAllowedException e) {
@@ -134,7 +135,7 @@ public class ImageRepositoryTest {
 	@Test
 	public void saveWillThrowExceptionIfUserIsEmpty() throws Exception {
 		try {
-			final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes());
+			final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
 			repository.saveNewImage(imageInputStream, "");
 			fail("expecting exception");
 		} catch (final ImageOperationNotAllowedException e) {

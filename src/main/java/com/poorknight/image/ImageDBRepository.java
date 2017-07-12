@@ -69,7 +69,7 @@ public class ImageDBRepository {
 		return new Image(imageId, url, owningUserId);
 	}
 
-	private Bson createFilterOnId(String imageId) {
+	private Bson createFilterOnId(final String imageId) {
 		return Filters.eq("imageId", imageId);
 	}
 }
