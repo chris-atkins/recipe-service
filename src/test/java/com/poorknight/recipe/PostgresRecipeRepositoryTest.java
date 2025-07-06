@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
-public class MongoRecipeRepositoryTest {
+public class PostgresRecipeRepositoryTest {
 
 	private static MongoClient mongo;
 	private RecipeRepository recipeRepository;

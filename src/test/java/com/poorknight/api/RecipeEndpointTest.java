@@ -30,7 +30,7 @@ public class RecipeEndpointTest {
 	private RecipeEndpoint endpoint;
 
 	@Mock
-	private RecipeRepositoryInterface repository;
+	private RecipeRepository repository;
 
 	@Mock
 	private RecipeTranslator translator;

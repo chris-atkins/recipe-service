@@ -4,7 +4,7 @@ import com.poorknight.recipe.search.SearchTag;
 
 import java.util.List;
 
-public interface RecipeRepositoryInterface {
+public interface RecipeRepository {
     Recipe saveNewRecipe(Recipe recipe);
 
     Recipe updateRecipe(Recipe recipeToUpdate);

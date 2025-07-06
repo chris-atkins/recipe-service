@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class RecipeServiceApplication extends Application<RecipeServiceConfiguration> {
@@ -51,7 +50,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	public void run(final RecipeServiceConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
 		final MongoClient mongoClient = connectToDatabase();
-		final RecipeRepositoryInterface recipeRepository = new MongoRecipeRepository(mongoClient);
+		final RecipeRepository recipeRepository = new MongoRecipeRepository(mongoClient);
 
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
 		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(mongoClient);
@@ -68,7 +67,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 //		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");  //Allows CORS headers to be returned
 	}
 
-	private RecipeEndpoint initializeRecipeEndpoint(final RecipeBookEndpoint recipeBookEndpoint, final RecipeRepositoryInterface recipeRepository) {
+	private RecipeEndpoint initializeRecipeEndpoint(final RecipeBookEndpoint recipeBookEndpoint, final RecipeRepository recipeRepository) {
 		final RecipeSearchStringParser recipeSearchStringParser = new RecipeSearchStringParser();
 		final RecipeTranslator recipeTranslator = new RecipeTranslator();
 		final RecipeBookToRecipeTranslator recipeBookToRecipeTranslator = new RecipeBookToRecipeTranslator();

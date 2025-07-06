@@ -19,13 +19,13 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 public class RecipeEndpoint {
 
-	private final RecipeRepositoryInterface recipeRepository;
+	private final RecipeRepository recipeRepository;
 	private final RecipeTranslator recipeTranslator;
 	private final RecipeSearchStringParser recipeSearchStringParser;
 	private RecipeBookEndpoint recipeBookEndpoint;
 	private RecipeBookToRecipeTranslator recipeBookToRecipeTranslator;
 
-	public RecipeEndpoint(final RecipeRepositoryInterface recipeRepository,
+	public RecipeEndpoint(final RecipeRepository recipeRepository,
 						  final RecipeTranslator recipeTranslator,
 						  final RecipeSearchStringParser recipeSearchStringParser,
 						  final RecipeBookEndpoint recipeBookEndpoint,

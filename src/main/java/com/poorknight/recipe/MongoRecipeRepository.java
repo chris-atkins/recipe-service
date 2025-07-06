@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MongoRecipeRepository implements RecipeRepositoryInterface {
+public class MongoRecipeRepository implements RecipeRepository {
 
 	private static final FindOneAndUpdateOptions UPDATE_OPTIONS = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
 

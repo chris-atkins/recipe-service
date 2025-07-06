@@ -4,7 +4,7 @@ import com.mongodb.MongoClient;
 import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.recipe.Recipe;
 import com.poorknight.recipe.MongoRecipeRepository;
-import com.poorknight.recipe.RecipeRepositoryInterface;
+import com.poorknight.recipe.RecipeRepository;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class OneTimeRecipeHtmlifierTest {
 
 	private static MongoClient mongo;
-	private RecipeRepositoryInterface recipeRepository;
+	private RecipeRepository recipeRepository;
 	private OneTimeRecipeHtmlifier htmlifier;
 
 	@BeforeClass
