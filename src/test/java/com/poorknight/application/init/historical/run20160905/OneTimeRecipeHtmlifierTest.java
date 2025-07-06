@@ -3,7 +3,8 @@ package com.poorknight.application.init.historical.run20160905;
 import com.mongodb.MongoClient;
 import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.recipe.Recipe;
-import com.poorknight.recipe.RecipeRepository;
+import com.poorknight.recipe.MongoRecipeRepository;
+import com.poorknight.recipe.RecipeRepositoryInterface;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -17,7 +18,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class OneTimeRecipeHtmlifierTest {
 
 	private static MongoClient mongo;
-	private RecipeRepository recipeRepository;
+	private RecipeRepositoryInterface recipeRepository;
 	private OneTimeRecipeHtmlifier htmlifier;
 
 	@BeforeClass
@@ -32,7 +33,7 @@ public class OneTimeRecipeHtmlifierTest {
 
 	@Before
 	public void setup() {
-		recipeRepository = new RecipeRepository(mongo);
+		recipeRepository = new MongoRecipeRepository(mongo);
 		htmlifier = new OneTimeRecipeHtmlifier(recipeRepository);
 	}
 

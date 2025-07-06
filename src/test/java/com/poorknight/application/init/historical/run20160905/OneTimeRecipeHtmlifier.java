@@ -1,15 +1,15 @@
 package com.poorknight.application.init.historical.run20160905;
 
 import com.poorknight.recipe.Recipe;
-import com.poorknight.recipe.RecipeRepository;
+import com.poorknight.recipe.RecipeRepositoryInterface;
 
 import java.util.List;
 
 public class OneTimeRecipeHtmlifier {
 
-	private final RecipeRepository recipeRepository;
+	private final RecipeRepositoryInterface recipeRepository;
 
-	public OneTimeRecipeHtmlifier(final RecipeRepository recipeRepository) {
+	public OneTimeRecipeHtmlifier(final RecipeRepositoryInterface recipeRepository) {
 		this.recipeRepository = recipeRepository;
 	}
 

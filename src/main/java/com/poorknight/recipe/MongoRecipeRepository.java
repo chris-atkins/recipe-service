@@ -20,16 +20,17 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RecipeRepository {
+public class MongoRecipeRepository implements RecipeRepositoryInterface {
 
 	private static final FindOneAndUpdateOptions UPDATE_OPTIONS = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
 
 	private final MongoClient mongoClient;
 
-	public RecipeRepository(final MongoClient mongoClient) {
+	public MongoRecipeRepository(final MongoClient mongoClient) {
 		this.mongoClient = mongoClient;
 	}
 
+	@Override
 	public Recipe saveNewRecipe(final Recipe recipe) {
 		throwExceptionIfARecipeIdExists(recipe);
 
@@ -39,6 +40,7 @@ public class RecipeRepository {
 		return toRecipe(document);
 	}
 
+	@Override
 	public Recipe updateRecipe(final Recipe recipeToUpdate) {
 		throwExceptionIfRecipeIdIsInvalid(recipeToUpdate);
 
@@ -55,6 +57,7 @@ public class RecipeRepository {
 		return collection.findOneAndUpdate(idFilter, document, UPDATE_OPTIONS);
 	}
 
+	@Override
 	public Recipe findRecipeById(final RecipeId id) {
 		if (idIsNotValid(id)) {
 			return null;
@@ -73,12 +76,14 @@ public class RecipeRepository {
 		return !ObjectId.isValid(id.getValue());
 	}
 
+	@Override
 	public List<Recipe> findAllRecipes() {
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final MongoCursor<Document> recipeIterator = collection.find().iterator();
 		return toRecipeList(recipeIterator);
 	}
 
+	@Override
 	public List<Recipe> findRecipesWithIds(final List<RecipeId> recipeIdsToFind) {
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final Bson recipesById = buildQueryForRecipeIds(recipeIdsToFind);
@@ -100,6 +105,7 @@ public class RecipeRepository {
 		return id != null && id.getValue() != null && ObjectId.isValid(id.getValue());
 	}
 
+	@Override
 	public List<Recipe> searchRecipes(final List<SearchTag> searchTags) {
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final Bson recipeWithAnyTag = buildQueryForAnyTagFound(searchTags);
@@ -116,6 +122,7 @@ public class RecipeRepository {
 		return Filters.text(sb.toString().trim());
 	}
 
+	@Override
 	public void deleteRecipe(final RecipeId id) {
 		final MongoCollection<Document> collection = getRecipeCollection();
 		final Bson idFilter = createFilterOnId(id);

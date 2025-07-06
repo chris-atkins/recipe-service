@@ -9,9 +9,7 @@ import com.poorknight.application.init.MongoSetup;
 import com.poorknight.image.ImageDBRepository;
 import com.poorknight.image.ImageRepository;
 import com.poorknight.image.ImageS3Repository;
-import com.poorknight.recipe.RecipeBookToRecipeTranslator;
-import com.poorknight.recipe.RecipeRepository;
-import com.poorknight.recipe.RecipeTranslator;
+import com.poorknight.recipe.*;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipebook.RecipeBookRepository;
 import com.poorknight.recipebook.RecipeBookTranslator;
@@ -27,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RecipeServiceApplication extends Application<RecipeServiceConfiguration> {
@@ -52,7 +51,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	public void run(final RecipeServiceConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
 		final MongoClient mongoClient = connectToDatabase();
-		final RecipeRepository recipeRepository = new RecipeRepository(mongoClient);
+		final RecipeRepositoryInterface recipeRepository = new MongoRecipeRepository(mongoClient);
 
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
 		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(mongoClient);
@@ -69,7 +68,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 //		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");  //Allows CORS headers to be returned
 	}
 
-	private RecipeEndpoint initializeRecipeEndpoint(final RecipeBookEndpoint recipeBookEndpoint, final RecipeRepository recipeRepository) {
+	private RecipeEndpoint initializeRecipeEndpoint(final RecipeBookEndpoint recipeBookEndpoint, final RecipeRepositoryInterface recipeRepository) {
 		final RecipeSearchStringParser recipeSearchStringParser = new RecipeSearchStringParser();
 		final RecipeTranslator recipeTranslator = new RecipeTranslator();
 		final RecipeBookToRecipeTranslator recipeBookToRecipeTranslator = new RecipeBookToRecipeTranslator();

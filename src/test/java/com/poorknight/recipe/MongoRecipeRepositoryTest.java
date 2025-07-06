@@ -20,10 +20,10 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
-public class RecipeRepositoryTest {
+public class MongoRecipeRepositoryTest {
 
 	private static MongoClient mongo;
-	private RecipeRepository recipeRepository;
+	private RecipeRepositoryInterface recipeRepository;
 
 	@BeforeClass
 	public static void setupMongo() throws Exception {
@@ -37,7 +37,7 @@ public class RecipeRepositoryTest {
 
 	@Before
 	public void setup() {
-		recipeRepository = new RecipeRepository(mongo);
+		recipeRepository = new MongoRecipeRepository(mongo);
 	}
 
 	@After
