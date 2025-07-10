@@ -4,7 +4,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.poorknight.application.init.MongoSetup;
+import com.poorknight.application.init.DatabaseSetup;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -47,7 +47,7 @@ public class ImageDBRepository {
 	}
 
 	private MongoCollection<Document> getImageCollection() {
-		final MongoDatabase database = this.mongoClient.getDatabase(MongoSetup.DB_NAME);
+		final MongoDatabase database = this.mongoClient.getDatabase(DatabaseSetup.DB_NAME);
 		return database.getCollection(ImageCollectionInitializer.IMAGE_COLLECTION);
 	}
 

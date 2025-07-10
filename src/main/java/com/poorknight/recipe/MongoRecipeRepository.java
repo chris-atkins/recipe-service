@@ -7,7 +7,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
-import com.poorknight.application.init.MongoSetup;
+import com.poorknight.application.init.DatabaseSetup;
 import com.poorknight.recipe.Recipe.RecipeId;
 import com.poorknight.recipe.Recipe.UserId;
 import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
@@ -130,7 +130,7 @@ public class MongoRecipeRepository implements RecipeRepository {
 	}
 
 	private MongoCollection<Document> getRecipeCollection() {
-		final MongoDatabase database = this.mongoClient.getDatabase(MongoSetup.DB_NAME);
+		final MongoDatabase database = this.mongoClient.getDatabase(DatabaseSetup.DB_NAME);
 		return database.getCollection(RecipeCollectionInitializer.RECIPE_COLLECTION);
 	}
 

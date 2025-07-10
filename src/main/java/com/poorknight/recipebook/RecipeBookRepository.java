@@ -4,7 +4,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.poorknight.application.init.MongoSetup;
+import com.poorknight.application.init.DatabaseSetup;
 import com.poorknight.recipebook.RecipeBook.RecipeId;
 import com.poorknight.recipebook.RecipeBook.UserId;
 import org.bson.Document;
@@ -23,7 +23,7 @@ public class RecipeBookRepository {
 	}
 
 	private MongoCollection<Document> getRecipeBookCollection() {
-		final MongoDatabase database = this.mongoClient.getDatabase(MongoSetup.DB_NAME);
+		final MongoDatabase database = this.mongoClient.getDatabase(DatabaseSetup.DB_NAME);
 		return database.getCollection(RecipeBookCollectionInitializer.RECIPE_BOOK_COLLECTION);
 	}
 

@@ -5,7 +5,7 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.poorknight.api.*;
 import com.poorknight.application.init.MetricsInitializer;
-import com.poorknight.application.init.MongoSetup;
+import com.poorknight.application.init.DatabaseSetup;
 import com.poorknight.image.ImageDBRepository;
 import com.poorknight.image.ImageRepository;
 import com.poorknight.image.ImageS3Repository;
@@ -100,7 +100,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		}
 
 		final MongoClient mongoClient = connectToDatabase(mongoLocation);
-		MongoSetup.setupDatabaseCollections(mongoClient);
+		DatabaseSetup.setupDatabaseCollections(mongoClient);
 		return mongoClient;
 	}
 

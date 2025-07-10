@@ -6,7 +6,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.WriteError;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.poorknight.application.init.MongoSetup;
+import com.poorknight.application.init.DatabaseSetup;
 import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.user.save.NonUniqueEmailException;
 import org.bson.BsonDocument;
@@ -105,7 +105,7 @@ public class UserRepositoryTest {
 		final MongoClient client = mock(MongoClient.class);
 		final MongoDatabase db = mock(MongoDatabase.class);
 		final MongoCollection<Document> collection = mock(MongoCollection.class);
-		when(client.getDatabase(MongoSetup.DB_NAME)).thenReturn(db);
+		when(client.getDatabase(DatabaseSetup.DB_NAME)).thenReturn(db);
 		when(db.getCollection(UserCollectionInitializer.USER_COLLECTION)).thenReturn(collection);
 
 		final UserRepository repository = new UserRepository(client, new UserTranslator());

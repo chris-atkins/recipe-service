@@ -5,7 +5,7 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.poorknight.application.init.MongoSetup;
+import com.poorknight.application.init.DatabaseSetup;
 import com.poorknight.user.User.UserId;
 import com.poorknight.user.save.NonUniqueEmailException;
 import org.bson.Document;
@@ -78,7 +78,7 @@ public class UserRepository {
 	}
 
 	private MongoCollection<Document> getUserCollection() {
-		final MongoDatabase database = this.mongoClient.getDatabase(MongoSetup.DB_NAME);
+		final MongoDatabase database = this.mongoClient.getDatabase(DatabaseSetup.DB_NAME);
 		return database.getCollection(UserCollectionInitializer.USER_COLLECTION);
 	}
 }

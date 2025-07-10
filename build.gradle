@@ -25,8 +25,8 @@ repositories {
 }
 
 java {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 1.17
+    targetCompatibility = 1.17
 }
 
 dependencies {
@@ -38,9 +38,13 @@ dependencies {
     implementation group: 'io.dropwizard.metrics', name: 'metrics-core', version:'3.1.2'
     implementation group: 'com.github.jjagged', name: 'metrics-statsd', version:'1.0.0'
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version:'1.11.115'
+    implementation 'org.postgresql:postgresql:42.7.7'
+    implementation 'org.flywaydb:flyway-core:11.10.1'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.1'
 
     testImplementation "org.testcontainers:testcontainers:1.20.4"
     testImplementation 'org.testcontainers:mongodb:1.20.4'
+    testImplementation 'org.testcontainers:postgresql:1.20.4'
 
     testImplementation group: 'junit', name: 'junit', version:'4.12'
     testImplementation group: 'org.hamcrest', name: 'hamcrest-all', version:'1.3'
