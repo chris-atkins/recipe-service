@@ -8,7 +8,7 @@ public class RecipeImage {
 	private String imageUrl;
 
 	public RecipeImage() {
-
+		// empty on purpose
 	}
 
 	public RecipeImage(final String imageId, final String imageUrl) {
@@ -49,5 +49,15 @@ public class RecipeImage {
 	public String toString() {
 		return com.google.common.base.Objects.toStringHelper(this).add("imageId", imageId).add("imageUrl",
 				imageUrl).toString();
+	}
+
+	public String toJsonString() {
+		String imageIdContentString = nullableContentString(imageId);
+		String imageUrlContentString = nullableContentString(imageUrl);
+		return "{\"imageId\":" + imageIdContentString + ",\"imageUrl\":" + imageUrlContentString + "}";
+	}
+
+	private String nullableContentString(String content) {
+		return content == null ? "null" : "\"" + content + "\"";
 	}
 }
