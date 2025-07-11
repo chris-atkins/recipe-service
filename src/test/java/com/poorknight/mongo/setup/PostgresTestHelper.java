@@ -51,17 +51,23 @@ public class PostgresTestHelper {
 	}
 
 	public static void deleteAllUsers() {
-		throw new NotImplementedException();
-//		final MongoDatabase database = mongo.getDatabase(MongoSetup.DB_NAME);
-//		final MongoCollection<Document> collection = database.getCollection(UserCollectionInitializer.USER_COLLECTION);
-//		collection.deleteMany(new Document());
+		try (Connection conn = getConnection()) {
+			PreparedStatement statement = conn.prepareStatement("DELETE from recipe_user");
+			statement.execute();
+			statement.close();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void deleteAllRecipeBooks() {
-		throw new NotImplementedException();
-//		final MongoDatabase database = mongo.getDatabase(MongoSetup.DB_NAME);
-//		final MongoCollection<Document> collection = database.getCollection(RecipeBookCollectionInitializer.RECIPE_BOOK_COLLECTION);
-//		collection.deleteMany(new Document());
+		try (Connection conn = getConnection()) {
+			PreparedStatement statement = conn.prepareStatement("DELETE from recipe_book");
+			statement.execute();
+			statement.close();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void deleteAllImages() {

@@ -11,8 +11,10 @@ import com.poorknight.image.ImageRepository;
 import com.poorknight.image.ImageS3Repository;
 import com.poorknight.recipe.*;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
+import com.poorknight.recipebook.MongoRecipeBookRepository;
 import com.poorknight.recipebook.RecipeBookRepository;
 import com.poorknight.recipebook.RecipeBookTranslator;
+import com.poorknight.user.MongoUserRepository;
 import com.poorknight.user.UserRepository;
 import com.poorknight.user.UserTranslator;
 import io.dropwizard.Application;
@@ -76,7 +78,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 
 	private UserEndpoint initializeUserEndpoint(final MongoClient mongoClient) {
 		final UserTranslator userTranslator = new UserTranslator();
-		final UserRepository userRepository = new UserRepository(mongoClient, userTranslator);
+		final UserRepository userRepository = new MongoUserRepository(mongoClient, userTranslator);
 		return new UserEndpoint(userRepository, userTranslator);
 	}
 
