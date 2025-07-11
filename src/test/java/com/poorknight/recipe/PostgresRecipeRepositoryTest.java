@@ -6,9 +6,11 @@ import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
 import com.poorknight.recipe.search.SearchTag;
 import org.assertj.core.api.Assertions;
 import org.bson.types.ObjectId;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,29 +20,28 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 
-@RunWith(JUnit4.class)
 public class PostgresRecipeRepositoryTest {
 
     private RecipeRepository recipeRepository;
 
 
-    @BeforeClass
+    @BeforeAll
     public static void setupDatabase() throws Exception {
         PostgresTestHelper.startPostgresAndMigrateTables();
     }
 
-    @AfterClass
+    @AfterAll
     public static void teardown() {
         PostgresTestHelper.stopPostgres();
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         PostgresConnectionInfo connectionInfo = PostgresTestHelper.buildCoonnectionInfo();
         recipeRepository = new PostgresRecipeRepository(connectionInfo);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         PostgresTestHelper.deleteAllRecipes();
     }

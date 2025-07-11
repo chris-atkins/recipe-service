@@ -11,9 +11,11 @@ import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.user.save.NonUniqueEmailException;
 import org.bson.BsonDocument;
 import org.bson.Document;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,29 +23,28 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(JUnit4.class)
 public class MongoUserRepositoryTest {
 
 	private static MongoClient mongo;
 	private UserRepository userRepository;
 	private final UserTranslator userTranslator = new UserTranslator();
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupMongo() throws Exception {
 		mongo = MongoSetupHelper.startMongoInstance();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 		MongoSetupHelper.cleanupMongo();
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		userRepository = new MongoUserRepository(mongo, userTranslator);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		MongoSetupHelper.deleteAllUsers();
 	}

@@ -1,16 +1,12 @@
 package com.poorknight.recipe.search;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
 
-import com.poorknight.recipe.search.RecipeSearchStringParser;
-
-@RunWith(JUnit4.class)
 public class RecipeSearchStringParserTest {
 
 	private final RecipeSearchStringParser parser = new RecipeSearchStringParser();
@@ -82,9 +78,14 @@ public class RecipeSearchStringParserTest {
 				new SearchTag("what"));
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void resultsAreNotModifiable() throws Exception {
-		final List<SearchTag> results = parser.parseSearchString("hi");
-		results.add(new SearchTag("trying to add"));
+		try {
+			final List<SearchTag> results = parser.parseSearchString("hi");
+			results.add(new SearchTag("trying to add"));
+			fail("expecting exception");
+		} catch (Exception e) {
+			assertThat(e).isInstanceOf(UnsupportedOperationException.class);
+		}
 	}
 }

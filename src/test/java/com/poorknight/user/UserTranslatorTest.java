@@ -2,13 +2,10 @@ package com.poorknight.user;
 
 import com.poorknight.user.User.UserId;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(JUnit4.class)
 public class UserTranslatorTest {
 
 	private final UserTranslator userTranslator = new UserTranslator();

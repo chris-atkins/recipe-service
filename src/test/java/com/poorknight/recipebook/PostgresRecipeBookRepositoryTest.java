@@ -1,14 +1,15 @@
 package com.poorknight.recipebook;
 
-import com.mongodb.MongoClient;
-import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.mongo.setup.PostgresTestHelper;
 import com.poorknight.recipe.PostgresConnectionInfo;
 import com.poorknight.recipebook.RecipeBook.RecipeId;
 import com.poorknight.recipebook.RecipeBook.UserId;
-import com.poorknight.user.PostgresUserRepository;
 import org.bson.types.ObjectId;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -17,23 +18,23 @@ public class PostgresRecipeBookRepositoryTest {
 
 	private RecipeBookRepository recipeBookRepository;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupMongo() throws Exception {
 		PostgresTestHelper.startPostgresAndMigrateTables();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 		PostgresTestHelper.stopPostgres();
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		PostgresConnectionInfo connectionInfo = PostgresTestHelper.buildCoonnectionInfo();
 		recipeBookRepository = new PostgresRecipeBookRepository(connectionInfo);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		PostgresTestHelper.deleteAllRecipeBooks();
 	}

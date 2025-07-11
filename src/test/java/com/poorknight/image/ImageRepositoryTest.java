@@ -1,14 +1,12 @@
 package com.poorknight.image;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -18,10 +16,8 @@ import java.util.UUID;
 import static org.apache.commons.lang3.RandomStringUtils.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-import static org.powermock.api.mockito.PowerMockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({UUID.class, ImageRepository.class})
+@ExtendWith(MockitoExtension.class)
 public class ImageRepositoryTest {
 
 	@InjectMocks
@@ -33,34 +29,32 @@ public class ImageRepositoryTest {
 	@Mock
 	private ImageDBRepository dbRepository;
 
-	@Before
-	public void setUp() throws Exception {
-		PowerMockito.mockStatic(UUID.class);
-	}
-
 	@Test
 	public void saveImageGeneratesAnIdForTheImageAndDelegatesToS3AndDBRepositories() throws Exception {
 		final UUID uuid = UUID.randomUUID();
-		final String imageId = uuid.toString();
-		final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
-		final String imageUrl = random(50);
-		final String userId = random(20);
-		final Image expectedImage = new Image(random(5), random(10), random(15));
+		try (MockedStatic<UUID> mockedUUID = Mockito.mockStatic(UUID.class)) {
+			mockedUUID.when(UUID::randomUUID).thenReturn(uuid);
 
-		when(UUID.randomUUID()).thenReturn(uuid);
-		when(s3Repository.saveNewImage(imageInputStream, imageId)).thenReturn(imageUrl);
-		when(dbRepository.saveNewImage(new Image(imageId, imageUrl, userId))).thenReturn(expectedImage);
+			final String imageId = uuid.toString();
+			final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
+			final String imageUrl = random(50);
+			final String userId = random(20);
+			final Image expectedImage = new Image(random(5), random(10), random(15));
 
-		final Image savedImage = repository.saveNewImage(imageInputStream, userId);
+			Mockito.when(s3Repository.saveNewImage(imageInputStream, imageId)).thenReturn(imageUrl);
+			Mockito.when(dbRepository.saveNewImage(new Image(imageId, imageUrl, userId))).thenReturn(expectedImage);
 
-		assertThat(savedImage).isEqualTo(expectedImage);
+			final Image savedImage = repository.saveNewImage(imageInputStream, userId);
+
+			assertThat(savedImage).isEqualTo(expectedImage);
+		}
 	}
 
 	@Test
 	public void findImageDelegatesToDBRepository() throws Exception {
 		final Image expectedImage = new Image(random(5), random(10), random(15));
 		final String imageId = random(20);
-		when(dbRepository.findImage(imageId)).thenReturn(expectedImage);
+		Mockito.when(dbRepository.findImage(imageId)).thenReturn(expectedImage);
 
 		final Image foundImage = repository.findImage(imageId);
 
@@ -74,7 +68,7 @@ public class ImageRepositoryTest {
 		final String userId = random(15);
 		final Image expectedImage = new Image(imageId, imageUrl, userId);
 
-		when(dbRepository.findImage(imageId)).thenReturn(expectedImage);
+		Mockito.when(dbRepository.findImage(imageId)).thenReturn(expectedImage);
 
 		repository.deleteImage(imageId, userId);
 
@@ -87,7 +81,7 @@ public class ImageRepositoryTest {
 		try {
 			final String imageId = random(5);
 			final Image expectedImage = new Image(imageId, random(10), "owning user");
-			when(dbRepository.findImage(imageId)).thenReturn(expectedImage);
+			Mockito.when(dbRepository.findImage(imageId)).thenReturn(expectedImage);
 
 			repository.deleteImage(imageId, "other user");
 

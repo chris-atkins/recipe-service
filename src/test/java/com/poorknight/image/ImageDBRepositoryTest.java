@@ -2,31 +2,36 @@ package com.poorknight.image;
 
 import com.mongodb.MongoClient;
 import com.poorknight.mongo.setup.MongoSetupHelper;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.apache.commons.lang3.RandomStringUtils.random;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ImageDBRepositoryTest {
 	private static MongoClient mongo;
 	private ImageDBRepository repository;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupMongo() throws Exception {
 		mongo = MongoSetupHelper.startMongoInstance();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 		MongoSetupHelper.cleanupMongo();
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		repository = new ImageDBRepository(mongo);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		MongoSetupHelper.deleteAllImages();
 	}
@@ -72,63 +77,63 @@ public class ImageDBRepositoryTest {
 		assertThat(deletedImage).isNull();
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfImageIsNull() throws Exception {
 		final Image imageToSave = null;
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfIdIsNull() throws Exception {
 		final Image imageToSave = new Image(null, random(5), random(5));
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfUrlIsNull() throws Exception {
 		final Image imageToSave = new Image(random(5), null, random(5));
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfOwningUserIdIsNull() throws Exception {
 		final Image imageToSave = new Image(random(5), random(5), null);
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfIdIsEmpty() throws Exception {
 		final Image imageToSave = new Image("", random(5), random(5));
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfUrlIsEmpty() throws Exception {
 		final Image imageToSave = new Image(random(5), "", random(5));
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfOwningUserIdIsEmpty() throws Exception {
 		final Image imageToSave = new Image(random(5), random(5), "");
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfIdIsWhitespace() throws Exception {
 		final Image imageToSave = new Image(" 	", random(5), random(5));
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfUrlIsWhitespace() throws Exception {
 		final Image imageToSave = new Image(random(5), " 	", random(5));
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test
 	public void saveNewImageThrowsExceptionIfOwningUserIdIsWhitespace() throws Exception {
 		final Image imageToSave = new Image(random(5), random(5), "		 ");
-		repository.saveNewImage(imageToSave);
+		assertThrows(RuntimeException.class, () -> repository.saveNewImage(imageToSave));
 	}
 }

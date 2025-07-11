@@ -5,39 +5,40 @@ import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.recipe.Recipe;
 import com.poorknight.recipe.MongoRecipeRepository;
 import com.poorknight.recipe.RecipeRepository;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-@RunWith(JUnit4.class)
 public class OneTimeRecipeHtmlifierTest {
 
 	private static MongoClient mongo;
 	private RecipeRepository recipeRepository;
 	private OneTimeRecipeHtmlifier htmlifier;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupMongo() throws Exception {
 		mongo = MongoSetupHelper.startMongoInstance();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 		MongoSetupHelper.cleanupMongo();
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		recipeRepository = new MongoRecipeRepository(mongo);
 		htmlifier = new OneTimeRecipeHtmlifier(recipeRepository);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		MongoSetupHelper.deleteAllRecipes();
 	}

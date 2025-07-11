@@ -7,11 +7,11 @@ import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipe.search.SearchTag;
 import com.poorknight.recipebook.ApiRecipeId;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
@@ -20,10 +20,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class RecipeEndpointTest {
 
 	@InjectMocks
@@ -160,14 +161,14 @@ public class RecipeEndpointTest {
 		assertThat(results).isEqualTo(apiRecipe);
 	}
 
-	@Test(expected = NotFoundException.class)
+	@Test
 	public void getRecipe_ThrowsNotFoundException_IfNoRecipeExists() throws Exception {
 		final RecipeId recipeId = new RecipeId("id");
 
 		when(translator.recipeIdFor("id")).thenReturn(recipeId);
 		when(repository.findRecipeById(recipeId)).thenReturn(null);
 
-		endpoint.getRecipe("id", "user");
+		assertThrows(NotFoundException.class, () -> endpoint.getRecipe("id", "user"));
 	}
 
 	@Test

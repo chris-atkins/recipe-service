@@ -3,37 +3,37 @@ package com.poorknight.user;
 import com.poorknight.mongo.setup.PostgresTestHelper;
 import com.poorknight.recipe.PostgresConnectionInfo;
 import com.poorknight.user.save.NonUniqueEmailException;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
 
-@RunWith(JUnit4.class)
 public class PostgresUserRepositoryTest {
 
 	private UserRepository userRepository;
 	private final UserTranslator userTranslator = new UserTranslator();
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupMongo() throws Exception {
 		PostgresTestHelper.startPostgresAndMigrateTables();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 		PostgresTestHelper.stopPostgres();
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		PostgresConnectionInfo connectionInfo = PostgresTestHelper.buildCoonnectionInfo();
 		userRepository = new PostgresUserRepository(connectionInfo);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		PostgresTestHelper.deleteAllUsers();
 	}

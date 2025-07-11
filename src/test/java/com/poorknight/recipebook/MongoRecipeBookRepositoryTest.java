@@ -5,7 +5,11 @@ import com.poorknight.mongo.setup.MongoSetupHelper;
 import com.poorknight.recipebook.RecipeBook.RecipeId;
 import com.poorknight.recipebook.RecipeBook.UserId;
 import org.bson.types.ObjectId;
-import org.junit.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -15,22 +19,22 @@ public class MongoRecipeBookRepositoryTest {
 	private static MongoClient mongo;
 	private RecipeBookRepository recipeBookRepository;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupMongo() throws Exception {
 		mongo = MongoSetupHelper.startMongoInstance();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 		MongoSetupHelper.cleanupMongo();
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		recipeBookRepository = new MongoRecipeBookRepository(mongo);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		MongoSetupHelper.deleteAllRecipeBooks();
 	}

@@ -7,9 +7,11 @@ import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
 import com.poorknight.recipe.search.SearchTag;
 import org.assertj.core.api.Assertions;
 import org.bson.types.ObjectId;
-import org.junit.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,28 +21,28 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.fail;
 
-@RunWith(JUnit4.class)
+
 public class MongoRecipeRepositoryTest {
 
 	private static MongoClient mongo;
 	private RecipeRepository recipeRepository;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupMongo() throws Exception {
 		mongo = MongoSetupHelper.startMongoInstance();
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void teardown() {
 		MongoSetupHelper.cleanupMongo();
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		recipeRepository = new MongoRecipeRepository(mongo);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		MongoSetupHelper.deleteAllRecipes();
 	}
