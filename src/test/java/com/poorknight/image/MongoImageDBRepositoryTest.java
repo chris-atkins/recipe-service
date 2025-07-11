@@ -12,7 +12,7 @@ import static org.apache.commons.lang3.RandomStringUtils.random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ImageDBRepositoryTest {
+public class MongoImageDBRepositoryTest {
 	private static MongoClient mongo;
 	private ImageDBRepository repository;
 
@@ -28,7 +28,7 @@ public class ImageDBRepositoryTest {
 
 	@BeforeEach
 	public void setup() {
-		repository = new ImageDBRepository(mongo);
+		repository = new MongoImageDBRepository(mongo);
 	}
 
 	@AfterEach

@@ -15,7 +15,6 @@ import static org.assertj.core.api.Assertions.fail;
 public class PostgresUserRepositoryTest {
 
 	private UserRepository userRepository;
-	private final UserTranslator userTranslator = new UserTranslator();
 
 	@BeforeAll
 	public static void setupMongo() throws Exception {

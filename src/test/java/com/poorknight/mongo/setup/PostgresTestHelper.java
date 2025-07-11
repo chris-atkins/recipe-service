@@ -3,7 +3,6 @@ package com.poorknight.mongo.setup;
 import com.poorknight.application.init.DatabaseSetup;
 import com.poorknight.recipe.PostgresConnectionInfo;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.shaded.org.apache.commons.lang3.NotImplementedException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -71,9 +70,12 @@ public class PostgresTestHelper {
 	}
 
 	public static void deleteAllImages() {
-		throw new NotImplementedException();
-//		final MongoDatabase database = mongo.getDatabase(MongoSetup.DB_NAME);
-//		final MongoCollection<Document> collection = database.getCollection(ImageCollectionInitializer.IMAGE_COLLECTION);
-//		collection.deleteMany(new Document());
+		try (Connection conn = getConnection()) {
+			PreparedStatement statement = conn.prepareStatement("DELETE from image");
+			statement.execute();
+			statement.close();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

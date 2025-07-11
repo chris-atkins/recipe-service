@@ -9,6 +9,7 @@ import com.poorknight.application.init.DatabaseSetup;
 import com.poorknight.image.ImageDBRepository;
 import com.poorknight.image.ImageRepository;
 import com.poorknight.image.ImageS3Repository;
+import com.poorknight.image.MongoImageDBRepository;
 import com.poorknight.recipe.*;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
 import com.poorknight.recipebook.MongoRecipeBookRepository;
@@ -90,7 +91,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 
 	private ImageEndpoint initializeImageEndpoint(final MongoClient mongoClient) {
 		final ImageS3Repository s3Repository = new ImageS3Repository();
-		final ImageDBRepository dbRepository = new ImageDBRepository(mongoClient);
+		final ImageDBRepository dbRepository = new MongoImageDBRepository(mongoClient);
 		final ImageRepository imageRepository = new ImageRepository(s3Repository, dbRepository);
 		return new ImageEndpoint(imageRepository);
 	}
