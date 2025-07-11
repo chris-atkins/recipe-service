@@ -10,7 +10,7 @@ import org.junit.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-public class RecipeBookRepositoryTest {
+public class MongoRecipeBookRepositoryTest {
 
 	private static MongoClient mongo;
 	private RecipeBookRepository recipeBookRepository;
@@ -27,7 +27,7 @@ public class RecipeBookRepositoryTest {
 
 	@Before
 	public void setup() {
-		recipeBookRepository = new RecipeBookRepository(mongo);
+		recipeBookRepository = new MongoRecipeBookRepository(mongo);
 	}
 
 	@After

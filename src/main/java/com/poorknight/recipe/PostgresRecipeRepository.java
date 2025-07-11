@@ -26,7 +26,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
 
         try (Connection conn = this.getConnection()) {
             PreparedStatement statement = conn.prepareStatement(
-                    "insert into recipe(id,name,content,owningUserId,image) values(?,?,?,?,?)"
+                    "insert into recipe(id,name,content,owning_user_id,image) values(?,?,?,?,?)"
             );
             String newId = generateNewId();
             statement.setString(1, newId);
@@ -140,7 +140,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
         Recipe.RecipeId id = new Recipe.RecipeId(resultSet.getString("id"));
         String name = resultSet.getString("name");
         String content = resultSet.getString("content");
-        Recipe.UserId owningUserId = new Recipe.UserId(resultSet.getString("owningUserId"));
+        Recipe.UserId owningUserId = new Recipe.UserId(resultSet.getString("owning_user_id"));
         RecipeImage image = imageFromJson(resultSet.getString("image"));
         return new Recipe(id, name, content, owningUserId, image);
     }

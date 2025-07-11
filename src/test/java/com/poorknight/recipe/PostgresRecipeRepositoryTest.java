@@ -25,7 +25,7 @@ public class PostgresRecipeRepositoryTest {
 
 
     @BeforeClass
-    public static void setupMongo() throws Exception {
+    public static void setupDatabase() throws Exception {
         PostgresTestHelper.startPostgresAndMigrateTables();
     }
 

@@ -83,7 +83,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	}
 
 	private RecipeBookEndpoint initializeRecipeBookEndpoint(final MongoClient mongoClient) {
-		final RecipeBookRepository recipeBookRepository = new RecipeBookRepository(mongoClient);
+		final RecipeBookRepository recipeBookRepository = new MongoRecipeBookRepository(mongoClient);
 		final RecipeBookTranslator recipeBookTranslator = new RecipeBookTranslator();
 		return new RecipeBookEndpoint(recipeBookRepository, recipeBookTranslator);
 	}
