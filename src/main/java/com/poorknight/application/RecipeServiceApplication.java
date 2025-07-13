@@ -53,7 +53,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	public void run(final RecipeServiceConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
 		final MongoClient mongoClient = connectToDatabase();
-		final PostgresConnectionInfo postgresConnectionInfo = initializePostgres();
+//		final PostgresConnectionInfo postgresConnectionInfo = initializePostgres();
 		final RecipeRepository recipeRepository = new MongoRecipeRepository(mongoClient);
 
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
