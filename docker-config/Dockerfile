@@ -1,5 +1,5 @@
 #FROM java:8-jdk
-FROM amazoncorretto:18-alpine3.16-jdk
+FROM amazoncorretto:18
 
 ADD recipe-service.jar recipe-service.jar
 # ADD example.keystore /data/example.keystore

@@ -164,7 +164,12 @@ public class Recipe {
 
 	@Override
 	public String toString() {
-		return com.google.common.base.Objects.toStringHelper(this).add("id", id).add("name", name).add("content",
-				content).add("owningUserId", owningUserId).add("image", image).toString();
+		return "Recipe{" +
+				"id=" + id +
+				", name='" + name + '\'' +
+				", content='" + content + '\'' +
+				", owningUserId=" + owningUserId +
+				", image=" + image +
+				'}';
 	}
 }

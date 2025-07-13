@@ -89,8 +89,12 @@ public class ApiRecipe {
 
 	@Override
 	public String toString() {
-		return com.google.common.base.Objects.toStringHelper(this).add("recipeId", recipeId).add("recipeName",
-				recipeName).add("recipeContent", recipeContent).add("editable", editable).add("image",
-				image).toString();
+		return "ApiRecipe{" +
+				"recipeId='" + recipeId + '\'' +
+				", recipeName='" + recipeName + '\'' +
+				", recipeContent='" + recipeContent + '\'' +
+				", editable=" + editable +
+				", image=" + image +
+				'}';
 	}
 }

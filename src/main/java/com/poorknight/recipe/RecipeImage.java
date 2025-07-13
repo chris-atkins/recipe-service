@@ -47,8 +47,10 @@ public class RecipeImage {
 
 	@Override
 	public String toString() {
-		return com.google.common.base.Objects.toStringHelper(this).add("imageId", imageId).add("imageUrl",
-				imageUrl).toString();
+		return "RecipeImage{" +
+				"imageId='" + imageId + '\'' +
+				", imageUrl='" + imageUrl + '\'' +
+				'}';
 	}
 
 	public String toJsonString() {
