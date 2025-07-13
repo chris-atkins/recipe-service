@@ -1,0 +1,1 @@
+ALTER DATABASE recipe SET search_path TO recipe,recipe;

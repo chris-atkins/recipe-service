@@ -13,7 +13,7 @@ public class PostgresTestHelper {
 
 	private static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
 			"postgres:16-alpine"
-	);
+	).withDatabaseName("recipe");
 
 	public static void startPostgresAndMigrateTables() {
 		postgres.start();

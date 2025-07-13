@@ -23,10 +23,13 @@ public class DatabaseSetup {
     }
 
     public static void migrateDatabaseTables(PostgresConnectionInfo connectionInfo) {
-        Flyway flyway = Flyway.configure().dataSource(
-                connectionInfo.getJdbcConnectionString(),
-                connectionInfo.getUsername(),
-                connectionInfo.getPassword()).load();
+        Flyway flyway = Flyway.configure()
+                .dataSource(
+                    connectionInfo.getJdbcConnectionString(),
+                    connectionInfo.getUsername(),
+                    connectionInfo.getPassword())
+                .defaultSchema("recipe")
+                .load();
         flyway.migrate();
     }
 }

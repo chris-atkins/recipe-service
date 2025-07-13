@@ -53,6 +53,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	public void run(final RecipeServiceConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
 		final MongoClient mongoClient = connectToDatabase();
+		final PostgresConnectionInfo postgresConnectionInfo = initializePostgres();
 		final RecipeRepository recipeRepository = new MongoRecipeRepository(mongoClient);
 
 		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
@@ -94,6 +95,15 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		final ImageDBRepository dbRepository = new MongoImageDBRepository(mongoClient);
 		final ImageRepository imageRepository = new ImageRepository(s3Repository, dbRepository);
 		return new ImageEndpoint(imageRepository);
+	}
+
+	private PostgresConnectionInfo initializePostgres() {
+		String postgresUrl = System.getenv("POSTGRES_URL");
+		String postgresUsername = System.getenv("POSTGRES_USERNAME");
+		String postgresPassword = System.getenv("POSTGRES_PASSWORD");
+		PostgresConnectionInfo connectionInfo = new PostgresConnectionInfo(postgresUsername, postgresPassword, postgresUrl);
+		DatabaseSetup.migrateDatabaseTables(connectionInfo);
+		return null;
 	}
 
 	private MongoClient connectToDatabase() {
