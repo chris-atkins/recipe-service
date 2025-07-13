@@ -17,7 +17,18 @@ public class PostgresTestHelper {
 
 	public static void startPostgresAndMigrateTables() {
 		postgres.start();
+		updateDatabaseQueryPrefixToMatchProd();
 		DatabaseSetup.migrateDatabaseTables(buildCoonnectionInfo());
+	}
+
+	private static void updateDatabaseQueryPrefixToMatchProd() {
+		try (Connection conn = getConnection()) {
+			PreparedStatement statement = conn.prepareStatement("ALTER DATABASE recipe SET search_path TO recipe,recipe");
+			statement.execute();
+			statement.close();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void stopPostgres() {

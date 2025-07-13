@@ -1,1 +1,2 @@
-ALTER DATABASE recipe SET search_path TO recipe,recipe;
+-- ALTER DATABASE recipe SET search_path TO recipe,recipe;
+-- I manually ran this in postgres because you must be owner to do this
