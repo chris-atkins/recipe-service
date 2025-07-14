@@ -6,16 +6,13 @@ import com.mongodb.ServerAddress;
 import com.poorknight.api.*;
 import com.poorknight.application.init.MetricsInitializer;
 import com.poorknight.application.init.DatabaseSetup;
-import com.poorknight.image.ImageDBRepository;
-import com.poorknight.image.ImageRepository;
-import com.poorknight.image.ImageS3Repository;
-import com.poorknight.image.MongoImageDBRepository;
+import com.poorknight.image.*;
 import com.poorknight.recipe.*;
 import com.poorknight.recipe.search.RecipeSearchStringParser;
-import com.poorknight.recipebook.MongoRecipeBookRepository;
+import com.poorknight.recipebook.PostgresRecipeBookRepository;
 import com.poorknight.recipebook.RecipeBookRepository;
 import com.poorknight.recipebook.RecipeBookTranslator;
-import com.poorknight.user.MongoUserRepository;
+import com.poorknight.user.PostgresUserRepository;
 import com.poorknight.user.UserRepository;
 import com.poorknight.user.UserTranslator;
 import io.dropwizard.Application;
@@ -52,14 +49,15 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	@Override
 	public void run(final RecipeServiceConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
-		final MongoClient mongoClient = connectToDatabase();
+//		final MongoClient mongoClient = connectToDatabase();
 		final PostgresConnectionInfo postgresConnectionInfo = initializePostgres();
-		final RecipeRepository recipeRepository = new MongoRecipeRepository(mongoClient);
 
-		final UserEndpoint userEndpoint = initializeUserEndpoint(mongoClient);
-		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(mongoClient);
+		final RecipeRepository recipeRepository = new PostgresRecipeRepository(postgresConnectionInfo);
+
+		final UserEndpoint userEndpoint = initializeUserEndpoint(postgresConnectionInfo);
+		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(postgresConnectionInfo);
 		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(recipeBookEndpoint, recipeRepository);
-		final ImageEndpoint imageEndpoint = initializeImageEndpoint(mongoClient);
+		final ImageEndpoint imageEndpoint = initializeImageEndpoint(postgresConnectionInfo);
 
 		environment.jersey().register(MultiPartFeature.class);
 		environment.jersey().register(recipeEndpoint);
@@ -78,21 +76,21 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		return new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser, recipeBookEndpoint, recipeBookToRecipeTranslator);
 	}
 
-	private UserEndpoint initializeUserEndpoint(final MongoClient mongoClient) {
+	private UserEndpoint initializeUserEndpoint(PostgresConnectionInfo postgresConnectionInfo) {
 		final UserTranslator userTranslator = new UserTranslator();
-		final UserRepository userRepository = new MongoUserRepository(mongoClient, userTranslator);
+		final UserRepository userRepository = new PostgresUserRepository(postgresConnectionInfo);
 		return new UserEndpoint(userRepository, userTranslator);
 	}
 
-	private RecipeBookEndpoint initializeRecipeBookEndpoint(final MongoClient mongoClient) {
-		final RecipeBookRepository recipeBookRepository = new MongoRecipeBookRepository(mongoClient);
+	private RecipeBookEndpoint initializeRecipeBookEndpoint(PostgresConnectionInfo postgresConnectionInfo) {
+		final RecipeBookRepository recipeBookRepository = new PostgresRecipeBookRepository(postgresConnectionInfo);
 		final RecipeBookTranslator recipeBookTranslator = new RecipeBookTranslator();
 		return new RecipeBookEndpoint(recipeBookRepository, recipeBookTranslator);
 	}
 
-	private ImageEndpoint initializeImageEndpoint(final MongoClient mongoClient) {
+	private ImageEndpoint initializeImageEndpoint(PostgresConnectionInfo postgresConnectionInfo) {
 		final ImageS3Repository s3Repository = new ImageS3Repository();
-		final ImageDBRepository dbRepository = new MongoImageDBRepository(mongoClient);
+		final ImageDBRepository dbRepository = new PostgresImageDBRepository(postgresConnectionInfo);
 		final ImageRepository imageRepository = new ImageRepository(s3Repository, dbRepository);
 		return new ImageEndpoint(imageRepository);
 	}
