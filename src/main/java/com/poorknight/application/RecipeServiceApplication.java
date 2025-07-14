@@ -101,7 +101,7 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		String postgresPassword = System.getenv("POSTGRES_PASSWORD");
 		PostgresConnectionInfo connectionInfo = new PostgresConnectionInfo(postgresUsername, postgresPassword, postgresUrl);
 		DatabaseSetup.migrateDatabaseTables(connectionInfo);
-		return null;
+		return connectionInfo;
 	}
 
 	private MongoClient connectToDatabase() {
