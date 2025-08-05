@@ -1,0 +1,27 @@
+projectName: recipe
+appName: recipe-backend
+
+replicaCount: 1
+
+containerRegistry: registry.digitalocean.com/chris-container-registry
+imageLabel: backend-latest
+
+servicePort: 80
+containerPort: 5555
+
+awsSecretAccessKey: "hidden"
+awsAccessKeyId: "hidden"
+awsRegion: "hidden"
+postgresUrl: "hidden"
+postgresUsername: "hidden"
+postgresPassword: "hidden"
+
+
+
+
+
+
+
+
+
+

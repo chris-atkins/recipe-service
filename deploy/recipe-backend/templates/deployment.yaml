@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prod
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+        - image: "{{ .Values.containerRegistry }}/{{ .Values.projectName }}:{{ .Values.imageLabel }}"
+          imagePullPolicy: Always
+          name: {{ .Values.appName }}
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+          env:
+            - name: MONGO_LOCATION
+              value: "NaN"
+            - name: MONGO_USER
+              value: "NaN"
+            - name: MONGO_PASSWORD
+              value: "NaN"
+            - name: METRICS_REPOSITORY_LOCATION
+              value: "NaN"
+            - name: METRICS_REPOSITORY_PORT
+              value: "NaN"
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.appName }}-secret"
+                  key: awsSecretAccessKey
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.appName }}-secret"
+                  key: awsAccessKeyId
+            - name: AWS_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.appName }}-secret"
+                  key: awsRegion
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.appName }}-secret"
+                  key: postgresUrl
+            - name: POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.appName }}-secret"
+                  key: postgresUsername
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.appName }}-secret"
+                  key: postgresPassword
