@@ -6,7 +6,7 @@ replicaCount: 1
 containerRegistry: registry.digitalocean.com/chris-container-registry
 imageLabel: backend-latest
 
-servicePort: 80
+servicePort: 5555
 containerPort: 5555
 
 awsSecretAccessKey: "hidden"
