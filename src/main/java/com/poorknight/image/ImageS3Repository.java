@@ -6,7 +6,6 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import java.io.InputStream;
@@ -22,13 +21,18 @@ public class ImageS3Repository {
 	}
 
 	private AmazonS3 buildS3Client() {
-		return AmazonS3ClientBuilder.standard().withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("https://nyc3.digitaloceanspaces.com", "us-east-1")).build();
+		return AmazonS3ClientBuilder.standard()
+				.withEndpointConfiguration(
+						new AwsClientBuilder.EndpointConfiguration(
+								"https://nyc3.digitaloceanspaces.com",
+								"us-east-1"))
+				.build();
 	}
 
 	protected String saveNewImage(final InputStream imageInputStream, final String imageId) {
 		final URL url = uploadImageToS3(imageInputStream, imageId);
 		System.out.println("Image URL from DO: " + url.toString());
-		return url.toExternalForm();
+		return transformToCDNSubdomainUrl(url);
 	}
 
 	private URL uploadImageToS3(final @FormDataParam("file") InputStream imageInputStream, final String imageId) {
@@ -43,8 +47,9 @@ public class ImageS3Repository {
 		return request;
 	}
 
-	private String makeUrlHttp(final URL url) {
+	private String transformToCDNSubdomainUrl(final URL url) {
 		final String original = url.toExternalForm();
-		return StringUtils.replace(original, "https:", "http:");
+		String[] splitsBySlash = original.split("/");
+		return "https://images.myrecipeconnection.com/" + splitsBySlash[splitsBySlash.length - 1];
 	}
 }

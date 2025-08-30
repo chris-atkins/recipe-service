@@ -26,8 +26,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ImageS3RepositoryTest {
 
-	private static final String HTTPS_URL = "https://helloThere";
-	private static final String HTTP_ONLY_URL = "http://helloThere";
+	private static final String HTTPS_URL = "https://helloThere/abcd";
+	private static final String TRANSFORMED_URL = "https://images.myrecipeconnection.com/abcd";
 
 	private String bucketName;
 	private String imageId;
@@ -58,7 +58,6 @@ public class ImageS3RepositoryTest {
 			s3Builder.when(AmazonS3ClientBuilder::standard).thenReturn(builder);
 			when(builder.withEndpointConfiguration(any())).thenReturn(builder);
 			when(builder.build()).thenReturn(s3);
-//			s3Builder.when(AmazonS3ClientBuilder::defaultClient).thenReturn(s3);
 			Mockito.when(s3.getUrl(bucketName, imageId)).thenReturn(new URL(HTTPS_URL));
 
 			final String imageUrl = repository.saveNewImage(imageInputStream, imageId);
@@ -70,7 +69,7 @@ public class ImageS3RepositoryTest {
 			assertThat(s3RequestObject.getInputStream()).isEqualTo(imageInputStream);
 			assertThat(s3RequestObject.getCannedAcl()).isEqualTo(CannedAccessControlList.PublicRead);
 
-			assertThat(imageUrl).isEqualTo(HTTPS_URL);
+			assertThat(imageUrl).isEqualTo(TRANSFORMED_URL);
 		}
 	}
 
