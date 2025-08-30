@@ -13,7 +13,7 @@ import java.net.URL;
 
 public class ImageS3Repository {
 
-	private static final String BUCKET_NAME = "myrecipeconnection.com.images";
+	private static final String BUCKET_NAME = "myrecipeconnection.images";
 
 	protected void deleteImage(final String imageId) {
 		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();

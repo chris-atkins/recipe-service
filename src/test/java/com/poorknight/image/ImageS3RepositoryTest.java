@@ -40,7 +40,7 @@ public class ImageS3RepositoryTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 		final UUID uuid = UUID.randomUUID();
-		bucketName = "myrecipeconnection.com.images";
+		bucketName = "myrecipeconnection.images";
 		imageId = uuid.toString();
 		s3 = Mockito.mock(AmazonS3.class);
 		imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
