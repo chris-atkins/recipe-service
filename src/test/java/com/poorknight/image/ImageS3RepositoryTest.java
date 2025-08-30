@@ -61,7 +61,7 @@ public class ImageS3RepositoryTest {
 			assertThat(s3RequestObject.getInputStream()).isEqualTo(imageInputStream);
 			assertThat(s3RequestObject.getCannedAcl()).isEqualTo(CannedAccessControlList.PublicRead);
 
-			assertThat(imageUrl).isEqualTo(HTTP_ONLY_URL);
+			assertThat(imageUrl).isEqualTo(HTTPS_URL);
 		}
 	}
 

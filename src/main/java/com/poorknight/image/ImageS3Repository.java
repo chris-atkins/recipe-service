@@ -17,16 +17,19 @@ public class ImageS3Repository {
 
 	protected void deleteImage(final String imageId) {
 		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+		s3.setEndpoint("https://nyc3.digitaloceanspaces.com");
 		s3.deleteObject(BUCKET_NAME, imageId);
 	}
 
 	protected String saveNewImage(final InputStream imageInputStream, final String imageId) {
 		final URL url = uploadImageToS3(imageInputStream, imageId);
-		return makeUrlHttp(url);
+		System.out.println("Image URL from DO: " + url.toString());
+		return url.toExternalForm();
 	}
 
 	private URL uploadImageToS3(final @FormDataParam("file") InputStream imageInputStream, final String imageId) {
 		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+		s3.setEndpoint("https://nyc3.digitaloceanspaces.com");
 		s3.putObject(buildS3PutImageRequest(imageInputStream, imageId));
 		return s3.getUrl(BUCKET_NAME, imageId);
 	}
