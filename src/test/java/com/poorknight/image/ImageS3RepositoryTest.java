@@ -1,5 +1,6 @@
 package com.poorknight.image;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -18,7 +19,9 @@ import java.nio.charset.Charset;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ImageS3RepositoryTest {
@@ -33,6 +36,9 @@ public class ImageS3RepositoryTest {
 
 	@InjectMocks
 	private ImageS3Repository repository;
+
+	@Mock
+	AmazonS3ClientBuilder builder;
 
 	@Captor
 	private ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor;
@@ -49,7 +55,10 @@ public class ImageS3RepositoryTest {
 	@Test
 	public void sameImageStoresItToAWSWWhileReplacingURLWithHttp() throws Exception {
 		try (MockedStatic<AmazonS3ClientBuilder> s3Builder = Mockito.mockStatic(AmazonS3ClientBuilder.class)) {
-			s3Builder.when(AmazonS3ClientBuilder::defaultClient).thenReturn(s3);
+			s3Builder.when(AmazonS3ClientBuilder::standard).thenReturn(builder);
+			when(builder.withEndpointConfiguration(any())).thenReturn(builder);
+			when(builder.build()).thenReturn(s3);
+//			s3Builder.when(AmazonS3ClientBuilder::defaultClient).thenReturn(s3);
 			Mockito.when(s3.getUrl(bucketName, imageId)).thenReturn(new URL(HTTPS_URL));
 
 			final String imageUrl = repository.saveNewImage(imageInputStream, imageId);
@@ -68,7 +77,9 @@ public class ImageS3RepositoryTest {
 	@Test
 	public void deleteRecipeCoordinatesCorrectly() throws Exception {
 		try (MockedStatic<AmazonS3ClientBuilder> s3Builder = Mockito.mockStatic(AmazonS3ClientBuilder.class)) {
-			s3Builder.when(AmazonS3ClientBuilder::defaultClient).thenReturn(s3);
+			s3Builder.when(AmazonS3ClientBuilder::standard).thenReturn(builder);
+			when(builder.withEndpointConfiguration(any())).thenReturn(builder);
+			when(builder.build()).thenReturn(s3);
 
 			final String imageId = RandomStringUtils.random(20);
 			repository.deleteImage(imageId);

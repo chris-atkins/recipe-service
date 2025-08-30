@@ -1,5 +1,6 @@
 package com.poorknight.image;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
@@ -16,9 +17,12 @@ public class ImageS3Repository {
 	private static final String BUCKET_NAME = "myrecipeconnection.images";
 
 	protected void deleteImage(final String imageId) {
-		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
-		s3.setEndpoint("https://nyc3.digitaloceanspaces.com");
+		final AmazonS3 s3 = buildS3Client();
 		s3.deleteObject(BUCKET_NAME, imageId);
+	}
+
+	private AmazonS3 buildS3Client() {
+		return AmazonS3ClientBuilder.standard().withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("https://nyc3.digitaloceanspaces.com", "us-east-1")).build();
 	}
 
 	protected String saveNewImage(final InputStream imageInputStream, final String imageId) {
@@ -28,8 +32,7 @@ public class ImageS3Repository {
 	}
 
 	private URL uploadImageToS3(final @FormDataParam("file") InputStream imageInputStream, final String imageId) {
-		final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
-		s3.setEndpoint("https://nyc3.digitaloceanspaces.com");
+		final AmazonS3 s3 = buildS3Client();
 		s3.putObject(buildS3PutImageRequest(imageInputStream, imageId));
 		return s3.getUrl(BUCKET_NAME, imageId);
 	}
