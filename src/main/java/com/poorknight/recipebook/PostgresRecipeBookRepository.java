@@ -1,19 +1,19 @@
 package com.poorknight.recipebook;
 
-import com.poorknight.recipe.PostgresConnectionInfo;
 import com.poorknight.user.User;
 import org.apache.commons.lang3.RandomStringUtils;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PostgresRecipeBookRepository implements RecipeBookRepository {
 
-    private final PostgresConnectionInfo connectionInfo;
+    private final DataSource dataSource;
 
-    public PostgresRecipeBookRepository(PostgresConnectionInfo connectionInfo) {
-        this.connectionInfo = connectionInfo;
+    public PostgresRecipeBookRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -94,11 +94,8 @@ public class PostgresRecipeBookRepository implements RecipeBookRepository {
 
     private Connection getConnection() {
         try {
-            return DriverManager.getConnection(
-                    this.connectionInfo.getJdbcConnectionString(),
-                    this.connectionInfo.getUsername(),
-                    this.connectionInfo.getPassword());
-        } catch (Exception e) {
+            return dataSource.getConnection();
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }

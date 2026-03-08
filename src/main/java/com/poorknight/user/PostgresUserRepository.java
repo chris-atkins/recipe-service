@@ -1,17 +1,17 @@
 package com.poorknight.user;
 
-import com.poorknight.recipe.PostgresConnectionInfo;
 import com.poorknight.user.save.NonUniqueEmailException;
 import org.apache.commons.lang3.RandomStringUtils;
 
+import javax.sql.DataSource;
 import java.sql.*;
 
 public class PostgresUserRepository implements UserRepository {
 
-    private final PostgresConnectionInfo connectionInfo;
+    private final DataSource dataSource;
 
-    public PostgresUserRepository(PostgresConnectionInfo connectionInfo) {
-        this.connectionInfo = connectionInfo;
+    public PostgresUserRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -79,11 +79,8 @@ public class PostgresUserRepository implements UserRepository {
 
     private Connection getConnection() {
         try {
-            return DriverManager.getConnection(
-                    this.connectionInfo.getJdbcConnectionString(),
-                    this.connectionInfo.getUsername(),
-                    this.connectionInfo.getPassword());
-        } catch (Exception e) {
+            return dataSource.getConnection();
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }

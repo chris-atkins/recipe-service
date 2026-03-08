@@ -7,15 +7,16 @@ import com.poorknight.recipe.search.SearchTag;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.postgresql.util.PGobject;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.*;
 
 public class PostgresRecipeRepository implements RecipeRepository {
 
-    private final PostgresConnectionInfo postgresConnectionInfo;
+    private final DataSource dataSource;
 
-    public PostgresRecipeRepository(PostgresConnectionInfo postgresConnectionInfo) {
-        this.postgresConnectionInfo = postgresConnectionInfo;
+    public PostgresRecipeRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -64,11 +65,8 @@ public class PostgresRecipeRepository implements RecipeRepository {
 
     private Connection getConnection() {
         try {
-            return DriverManager.getConnection(
-                    this.postgresConnectionInfo.getJdbcConnectionString(),
-                    this.postgresConnectionInfo.getUsername(),
-                    this.postgresConnectionInfo.getPassword());
-        } catch (Exception e) {
+            return dataSource.getConnection();
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }

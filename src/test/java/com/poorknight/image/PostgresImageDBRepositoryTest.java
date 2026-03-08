@@ -1,7 +1,7 @@
 package com.poorknight.image;
 
 import com.poorknight.test.setup.PostgresTestHelper;
-import com.poorknight.recipe.PostgresConnectionInfo;
+
 import org.junit.jupiter.api.*;
 
 import static org.apache.commons.lang3.RandomStringUtils.random;
@@ -24,8 +24,7 @@ public class PostgresImageDBRepositoryTest {
 
 	@BeforeEach
 	public void setup() {
-		PostgresConnectionInfo connectionInfo = PostgresTestHelper.buildCoonnectionInfo();
-		repository = new PostgresImageDBRepository(connectionInfo);
+		repository = new PostgresImageDBRepository(PostgresTestHelper.buildDataSource());
 	}
 
 	@AfterEach

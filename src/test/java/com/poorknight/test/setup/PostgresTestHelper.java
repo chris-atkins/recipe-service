@@ -2,8 +2,11 @@ package com.poorknight.test.setup;
 
 import com.poorknight.application.init.DatabaseSetup;
 import com.poorknight.recipe.PostgresConnectionInfo;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -37,6 +40,14 @@ public class PostgresTestHelper {
 
 	public static PostgresConnectionInfo buildCoonnectionInfo() {
 		return new PostgresConnectionInfo(postgres.getUsername(), postgres.getPassword(), postgres.getJdbcUrl());
+	}
+
+	public static DataSource buildDataSource() {
+		HikariConfig config = new HikariConfig();
+		config.setJdbcUrl(postgres.getJdbcUrl());
+		config.setUsername(postgres.getUsername());
+		config.setPassword(postgres.getPassword());
+		return new HikariDataSource(config);
 	}
 
 	public static void deleteAllRecipes() {

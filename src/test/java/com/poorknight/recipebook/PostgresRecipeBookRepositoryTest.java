@@ -1,7 +1,7 @@
 package com.poorknight.recipebook;
 
 import com.poorknight.test.setup.PostgresTestHelper;
-import com.poorknight.recipe.PostgresConnectionInfo;
+
 import com.poorknight.recipebook.RecipeBook.RecipeId;
 import com.poorknight.recipebook.RecipeBook.UserId;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -30,8 +30,7 @@ public class PostgresRecipeBookRepositoryTest {
 
 	@BeforeEach
 	public void setup() {
-		PostgresConnectionInfo connectionInfo = PostgresTestHelper.buildCoonnectionInfo();
-		recipeBookRepository = new PostgresRecipeBookRepository(connectionInfo);
+		recipeBookRepository = new PostgresRecipeBookRepository(PostgresTestHelper.buildDataSource());
 	}
 
 	@AfterEach

@@ -37,8 +37,7 @@ public class PostgresRecipeRepositoryTest {
 
     @BeforeEach
     public void setup() {
-        PostgresConnectionInfo connectionInfo = PostgresTestHelper.buildCoonnectionInfo();
-        recipeRepository = new PostgresRecipeRepository(connectionInfo);
+        recipeRepository = new PostgresRecipeRepository(PostgresTestHelper.buildDataSource());
     }
 
     @AfterEach

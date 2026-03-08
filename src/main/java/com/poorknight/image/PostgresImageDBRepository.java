@@ -1,15 +1,15 @@
 package com.poorknight.image;
 
-import com.poorknight.recipe.PostgresConnectionInfo;
 import org.apache.commons.lang3.RandomStringUtils;
 
+import javax.sql.DataSource;
 import java.sql.*;
 
 public class PostgresImageDBRepository extends ImageDBRepository {
-    private final PostgresConnectionInfo connectionInfo;
+    private final DataSource dataSource;
 
-    public PostgresImageDBRepository(PostgresConnectionInfo connectionInfo) {
-        this.connectionInfo = connectionInfo;
+    public PostgresImageDBRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
@@ -82,11 +82,8 @@ public class PostgresImageDBRepository extends ImageDBRepository {
 
     private Connection getConnection() {
         try {
-            return DriverManager.getConnection(
-                    this.connectionInfo.getJdbcConnectionString(),
-                    this.connectionInfo.getUsername(),
-                    this.connectionInfo.getPassword());
-        } catch (Exception e) {
+            return dataSource.getConnection();
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }

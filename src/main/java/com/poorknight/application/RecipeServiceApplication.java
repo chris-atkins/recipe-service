@@ -12,6 +12,8 @@ import com.poorknight.recipebook.RecipeBookTranslator;
 import com.poorknight.user.PostgresUserRepository;
 import com.poorknight.user.UserRepository;
 import com.poorknight.user.UserTranslator;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
@@ -20,6 +22,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,14 +48,14 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	@Override
 	public void run(final RecipeServiceConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
-		final PostgresConnectionInfo postgresConnectionInfo = initializePostgres();
+		final DataSource dataSource = initializePostgres();
 
-		final RecipeRepository recipeRepository = new PostgresRecipeRepository(postgresConnectionInfo);
+		final RecipeRepository recipeRepository = new PostgresRecipeRepository(dataSource);
 
-		final UserEndpoint userEndpoint = initializeUserEndpoint(postgresConnectionInfo);
-		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(postgresConnectionInfo);
+		final UserEndpoint userEndpoint = initializeUserEndpoint(dataSource);
+		final RecipeBookEndpoint recipeBookEndpoint = initializeRecipeBookEndpoint(dataSource);
 		final RecipeEndpoint recipeEndpoint = initializeRecipeEndpoint(recipeBookEndpoint, recipeRepository);
-		final ImageEndpoint imageEndpoint = initializeImageEndpoint(postgresConnectionInfo);
+		final ImageEndpoint imageEndpoint = initializeImageEndpoint(dataSource);
 
 		environment.jersey().register(MultiPartFeature.class);
 		environment.jersey().register(recipeEndpoint);
@@ -71,32 +74,37 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		return new RecipeEndpoint(recipeRepository, recipeTranslator, recipeSearchStringParser, recipeBookEndpoint, recipeBookToRecipeTranslator);
 	}
 
-	private UserEndpoint initializeUserEndpoint(PostgresConnectionInfo postgresConnectionInfo) {
+	private UserEndpoint initializeUserEndpoint(DataSource dataSource) {
 		final UserTranslator userTranslator = new UserTranslator();
-		final UserRepository userRepository = new PostgresUserRepository(postgresConnectionInfo);
+		final UserRepository userRepository = new PostgresUserRepository(dataSource);
 		return new UserEndpoint(userRepository, userTranslator);
 	}
 
-	private RecipeBookEndpoint initializeRecipeBookEndpoint(PostgresConnectionInfo postgresConnectionInfo) {
-		final RecipeBookRepository recipeBookRepository = new PostgresRecipeBookRepository(postgresConnectionInfo);
+	private RecipeBookEndpoint initializeRecipeBookEndpoint(DataSource dataSource) {
+		final RecipeBookRepository recipeBookRepository = new PostgresRecipeBookRepository(dataSource);
 		final RecipeBookTranslator recipeBookTranslator = new RecipeBookTranslator();
 		return new RecipeBookEndpoint(recipeBookRepository, recipeBookTranslator);
 	}
 
-	private ImageEndpoint initializeImageEndpoint(PostgresConnectionInfo postgresConnectionInfo) {
+	private ImageEndpoint initializeImageEndpoint(DataSource dataSource) {
 		final ImageS3Repository s3Repository = new ImageS3Repository();
-		final ImageDBRepository dbRepository = new PostgresImageDBRepository(postgresConnectionInfo);
+		final ImageDBRepository dbRepository = new PostgresImageDBRepository(dataSource);
 		final ImageRepository imageRepository = new ImageRepository(s3Repository, dbRepository);
 		return new ImageEndpoint(imageRepository);
 	}
 
-	private PostgresConnectionInfo initializePostgres() {
+	private DataSource initializePostgres() {
 		String postgresUrl = System.getenv("POSTGRES_URL");
 		String postgresUsername = System.getenv("POSTGRES_USERNAME");
 		String postgresPassword = System.getenv("POSTGRES_PASSWORD");
 		PostgresConnectionInfo connectionInfo = new PostgresConnectionInfo(postgresUsername, postgresPassword, postgresUrl);
 		DatabaseSetup.migrateDatabaseTables(connectionInfo);
-		return connectionInfo;
+
+		HikariConfig config = new HikariConfig();
+		config.setJdbcUrl(postgresUrl);
+		config.setUsername(postgresUsername);
+		config.setPassword(postgresPassword);
+		return new HikariDataSource(config);
 	}
 
 	private void enableWadl(final Environment environment) {
