@@ -7,11 +7,15 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URL;
 
 public class ImageS3Repository {
+
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private static final String BUCKET_NAME = "myrecipeconnection.images";
 
@@ -31,7 +35,7 @@ public class ImageS3Repository {
 
 	protected String saveNewImage(final InputStream imageInputStream, final String imageId) {
 		final URL url = uploadImageToS3(imageInputStream, imageId);
-		System.out.println("Image URL from DO: " + url.toString());
+		logger.info("Image URL from DO: {}", url.toString());
 		return transformToCDNSubdomainUrl(url);
 	}
 

@@ -64,7 +64,7 @@ public class PostgresRecipeBookRepository implements RecipeBookRepository {
             statement.close();
             return recipeId;
         } catch (SQLException e) {
-            if (e.getMessage().contains("duplicate key value violates unique constraint")) {
+            if ("23505".equals(e.getSQLState())) {
                 return recipeId;
             }
             throw new RuntimeException(e);

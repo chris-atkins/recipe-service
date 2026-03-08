@@ -1,5 +1,8 @@
 package com.poorknight.recipe;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Objects;
 
 public class RecipeImage {
@@ -54,12 +57,10 @@ public class RecipeImage {
 	}
 
 	public String toJsonString() {
-		String imageIdContentString = nullableContentString(imageId);
-		String imageUrlContentString = nullableContentString(imageUrl);
-		return "{\"imageId\":" + imageIdContentString + ",\"imageUrl\":" + imageUrlContentString + "}";
-	}
-
-	private String nullableContentString(String content) {
-		return content == null ? "null" : "\"" + content + "\"";
+		try {
+			return new ObjectMapper().writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException("Failed to serialize RecipeImage to JSON", e);
+		}
 	}
 }

@@ -34,7 +34,7 @@ public class PostgresUserRepository implements UserRepository {
     }
 
     private boolean isDuplicateEmailError(SQLException e) {
-        return e.getMessage().contains("duplicate key value violates unique constraint") && e.getMessage().contains("recipe_user_email_key");
+        return "23505".equals(e.getSQLState()) && e.getMessage().contains("recipe_user_email_key");
     }
 
     @Override
