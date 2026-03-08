@@ -1,11 +1,11 @@
 package com.poorknight.recipe;
 
-import com.poorknight.mongo.setup.PostgresTestHelper;
+import com.poorknight.test.setup.PostgresTestHelper;
 import com.poorknight.recipe.Recipe.RecipeId;
 import com.poorknight.recipe.exception.NoRecipeExistsForIdException;
 import com.poorknight.recipe.search.SearchTag;
 import org.assertj.core.api.Assertions;
-import org.bson.types.ObjectId;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -71,7 +71,7 @@ public class PostgresRecipeRepositoryTest {
 
     @Test
     public void getRecipe_WhereNoneExists_ReturnsNull() throws Exception {
-        final String validMongoId = new ObjectId().toHexString();
+        final String validMongoId = RandomStringUtils.randomAlphanumeric(24);
         final Recipe recipe = recipeRepository.findRecipeById(new RecipeId(validMongoId));
         assertThat(recipe, nullValue());
     }
@@ -156,7 +156,7 @@ public class PostgresRecipeRepositoryTest {
         final RecipeId nullValueId = new RecipeId(null);
         final RecipeId emptyValueId = new RecipeId("");
         final RecipeId invalidId = new RecipeId("invalid");
-        final RecipeId validUnknownId = new RecipeId(new ObjectId().toHexString());
+        final RecipeId validUnknownId = new RecipeId(RandomStringUtils.randomAlphanumeric(24));
 
         final List<RecipeId> recipeIdsToFind = Arrays.asList(id1, id3, nullId, nullValueId, emptyValueId, invalidId, validUnknownId);
         final List<Recipe> recipeList = recipeRepository.findRecipesWithIds(recipeIdsToFind);

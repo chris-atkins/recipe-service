@@ -22,11 +22,11 @@ public class ApiRecipe {
 		this(recipeId, recipeName, recipeContent, editable, null);
 	}
 
-	public ApiRecipe(final String recipeId, final String recipeName, final String recipeCcontent, final boolean editable, RecipeImage image) {
+	public ApiRecipe(final String recipeId, final String recipeName, final String recipeContent, final boolean editable, RecipeImage image) {
 		super();
 		this.recipeId = recipeId;
 		this.recipeName = recipeName;
-		this.recipeContent = recipeCcontent;
+		this.recipeContent = recipeContent;
 		this.editable = editable;
 		this.image = image;
 	}

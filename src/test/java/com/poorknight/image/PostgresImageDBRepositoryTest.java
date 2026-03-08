@@ -1,6 +1,6 @@
 package com.poorknight.image;
 
-import com.poorknight.mongo.setup.PostgresTestHelper;
+import com.poorknight.test.setup.PostgresTestHelper;
 import com.poorknight.recipe.PostgresConnectionInfo;
 import org.junit.jupiter.api.*;
 

@@ -175,10 +175,49 @@ public class RecipeEndpointTest {
 	public void deleteRecipe_DelegatesToItsCollaborators() throws Exception {
 		final RecipeId recipeId = new RecipeId("id");
 		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.findRecipeById(recipeId)).thenReturn(new Recipe("", "", new UserId("user")));
 
 		endpoint.deleteRecipe("id", "user");
 
 		verify(repository).deleteRecipe(recipeId);
+	}
+
+	@Test
+	public void deleteRecipe_Throws401Exception_WhenAnEmptyUserIdIsSpecified() throws Exception {
+		try {
+			endpoint.deleteRecipe("id", "");
+			fail("expected exception");
+		} catch (WebApplicationException e) {
+			assertThat(e.getMessage()).isEqualTo("A user id must be in the header to perform this operation.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void deleteRecipe_Throws401Exception_WhenANullUserIdIsSpecified() throws Exception {
+		try {
+			endpoint.deleteRecipe("id", null);
+			fail("expected exception");
+		} catch (WebApplicationException e) {
+			assertThat(e.getMessage()).isEqualTo("A user id must be in the header to perform this operation.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void deleteRecipe_Throws401Exception_WhenADifferentUserRequestsDeleteThanWhoCreatedIt() throws Exception {
+		final RecipeId recipeId = new RecipeId("id");
+
+		try {
+			when(translator.recipeIdFor("id")).thenReturn(recipeId);
+			when(repository.findRecipeById(recipeId)).thenReturn(new Recipe("", "", new UserId("userId")));
+
+			endpoint.deleteRecipe("id", "otherUserId");
+			fail("expected exception");
+		} catch (WebApplicationException e) {
+			assertThat(e.getMessage()).isEqualTo("Only the original creator of a recipe may delete it.");
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
 	}
 
 	@Test

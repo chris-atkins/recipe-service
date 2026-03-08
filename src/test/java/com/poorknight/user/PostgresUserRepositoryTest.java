@@ -1,6 +1,6 @@
 package com.poorknight.user;
 
-import com.poorknight.mongo.setup.PostgresTestHelper;
+import com.poorknight.test.setup.PostgresTestHelper;
 import com.poorknight.recipe.PostgresConnectionInfo;
 import com.poorknight.user.save.NonUniqueEmailException;
 import org.junit.jupiter.api.AfterAll;

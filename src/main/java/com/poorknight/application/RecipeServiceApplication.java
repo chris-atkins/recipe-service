@@ -1,8 +1,5 @@
 package com.poorknight.application;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
 import com.poorknight.api.*;
 import com.poorknight.application.init.MetricsInitializer;
 import com.poorknight.application.init.DatabaseSetup;
@@ -23,7 +20,6 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +45,6 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 	@Override
 	public void run(final RecipeServiceConfiguration configuration, final Environment environment) {
 		enableWadl(environment);
-//		final MongoClient mongoClient = connectToDatabase();
 		final PostgresConnectionInfo postgresConnectionInfo = initializePostgres();
 
 		final RecipeRepository recipeRepository = new PostgresRecipeRepository(postgresConnectionInfo);
@@ -102,39 +97,6 @@ public class RecipeServiceApplication extends Application<RecipeServiceConfigura
 		PostgresConnectionInfo connectionInfo = new PostgresConnectionInfo(postgresUsername, postgresPassword, postgresUrl);
 		DatabaseSetup.migrateDatabaseTables(connectionInfo);
 		return connectionInfo;
-	}
-
-	private MongoClient connectToDatabase() {
-		String mongoLocation = System.getenv("MONGO_LOCATION");
-		if (mongoLocation == null) {
-			mongoLocation = "mongodb";
-		}
-
-		final MongoClient mongoClient = connectToDatabase(mongoLocation);
-		DatabaseSetup.setupDatabaseCollections(mongoClient);
-		return mongoClient;
-	}
-
-	private MongoClient connectToDatabase(final String mongoLocation) {
-		final String user = System.getenv("MONGO_USER");
-		final String password = System.getenv("MONGO_PASSWORD");
-
-		if (user == null && password == null) {
-			return setupNoAuthDatabaseConnection(mongoLocation);
-		}
-		return setupAuthenticatedDatabaseConnection(mongoLocation, user, password);
-	}
-
-	private MongoClient setupNoAuthDatabaseConnection(final String mongoLocation) {
-		logger.info("Connecting with no auth to MongoDB found at: " + mongoLocation);
-		return new MongoClient(mongoLocation);
-	}
-
-	private MongoClient setupAuthenticatedDatabaseConnection(final String mongoLocation, final String user, final String password) {
-		logger.info("Connecting securely to MongoDB found at: " + mongoLocation);
-		final char[] passwordChars = password == null ? null : password.toCharArray();
-		final MongoCredential credential = MongoCredential.createCredential(user, "admin", passwordChars);
-		return new MongoClient(new ServerAddress(mongoLocation), Collections.singletonList(credential));
 	}
 
 	private void enableWadl(final Environment environment) {

@@ -1,4 +1,4 @@
-package com.poorknight.mongo.setup;
+package com.poorknight.test.setup;
 
 import com.poorknight.application.init.DatabaseSetup;
 import com.poorknight.recipe.PostgresConnectionInfo;

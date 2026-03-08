@@ -1,10 +1,10 @@
 package com.poorknight.recipebook;
 
-import com.poorknight.mongo.setup.PostgresTestHelper;
+import com.poorknight.test.setup.PostgresTestHelper;
 import com.poorknight.recipe.PostgresConnectionInfo;
 import com.poorknight.recipebook.RecipeBook.RecipeId;
 import com.poorknight.recipebook.RecipeBook.UserId;
-import org.bson.types.ObjectId;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -205,6 +205,6 @@ public class PostgresRecipeBookRepositoryTest {
 	}
 
 	private String randomObjectId() {
-		return new ObjectId().toHexString();
+		return RandomStringUtils.randomAlphanumeric(24);
 	}
 }

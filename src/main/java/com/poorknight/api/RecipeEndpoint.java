@@ -111,7 +111,7 @@ public class RecipeEndpoint {
 	@Timed(name = "putRecipe")
 	@Path("/{id}")
 	public ApiRecipe putRecipe(final ApiRecipe recipe, @PathParam("id") final String recipeId, @HeaderParam("RequestingUser") final String requestingUserIdString) {
-		validateUserIsAllowedToUpdateRecipe(recipeId, requestingUserIdString);
+		validateUserOwnsRecipe(recipeId, requestingUserIdString, "update");
 
 		try {
 			return putRecipeThrowingExceptions(recipe, requestingUserIdString);
@@ -121,13 +121,13 @@ public class RecipeEndpoint {
 		}
 	}
 
-	private void validateUserIsAllowedToUpdateRecipe(final String recipeId, final String requestingUserIdString) {
+	private void validateUserOwnsRecipe(final String recipeId, final String requestingUserIdString, final String action) {
 		if (StringUtils.isEmpty(requestingUserIdString)) {
 			throw new WebApplicationException("A user id must be in the header to perform this operation.", 401);
 		}
 		final Recipe existingRecipe = recipeRepository.findRecipeById(recipeTranslator.recipeIdFor(recipeId));
 		if (existingRecipe != null && !requestingUserIdString.equals(existingRecipe.getOwningUserId().getValue())) {
-			throw new WebApplicationException("Only the original creator of a recipe may update it.", 401);
+			throw new WebApplicationException("Only the original creator of a recipe may " + action + " it.", 401);
 		}
 	}
 
@@ -141,7 +141,8 @@ public class RecipeEndpoint {
 	@DELETE
 	@Timed(name = "deleteRecipe")
 	@Path("/{id}")
-	public void deleteRecipe(@PathParam("id") final String recipeId, @HeaderParam("RequestingUser") final String requestingUserId) {
+	public void deleteRecipe(@PathParam("id") final String recipeId, @HeaderParam("RequestingUser") final String requestingUserIdString) {
+		validateUserOwnsRecipe(recipeId, requestingUserIdString, "delete");
 		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
 		recipeRepository.deleteRecipe(id);
 	}
