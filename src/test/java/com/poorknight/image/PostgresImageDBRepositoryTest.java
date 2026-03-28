@@ -5,6 +5,7 @@ import com.poorknight.test.setup.PostgresTestHelper;
 import org.junit.jupiter.api.*;
 
 import static org.apache.commons.lang3.RandomStringUtils.random;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -34,7 +35,7 @@ public class PostgresImageDBRepositoryTest {
 
 	@Test
 	public void simpleSaveAndFindWorks() throws Exception {
-		final String imageId = random(20);
+		final String imageId = randomAlphanumeric(24);
 		final String imageUrl = random(50);
 		final String owningUserId = random(15);
 
@@ -58,7 +59,7 @@ public class PostgresImageDBRepositoryTest {
 
 	@Test
 	public void deleteWorks() throws Exception {
-		final String imageId = random(20);
+		final String imageId = randomAlphanumeric(24);
 		final String imageUrl = random(50);
 		final String owningUserId = random(15);
 		final Image imageToSave = new Image(imageId, imageUrl, owningUserId);

@@ -16,8 +16,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -45,9 +43,8 @@ public class ImageS3RepositoryTest {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		final UUID uuid = UUID.randomUUID();
 		bucketName = "myrecipeconnection.images";
-		imageId = uuid.toString();
+		imageId = RandomStringUtils.randomAlphanumeric(24);
 		s3 = Mockito.mock(AmazonS3.class);
 		imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
 	}

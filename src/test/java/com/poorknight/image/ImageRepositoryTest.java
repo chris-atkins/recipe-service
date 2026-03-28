@@ -2,16 +2,12 @@ package com.poorknight.image;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.UUID;
 
 import static org.apache.commons.lang3.RandomStringUtils.random;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,25 +25,33 @@ public class ImageRepositoryTest {
 	@Mock
 	private ImageDBRepository dbRepository;
 
+	@Captor
+	private ArgumentCaptor<String> imageIdCaptor;
+
+	@Captor
+	private ArgumentCaptor<Image> imageCaptor;
+
 	@Test
 	public void saveImageGeneratesAnIdForTheImageAndDelegatesToS3AndDBRepositories() throws Exception {
-		final UUID uuid = UUID.randomUUID();
-		try (MockedStatic<UUID> mockedUUID = Mockito.mockStatic(UUID.class)) {
-			mockedUUID.when(UUID::randomUUID).thenReturn(uuid);
+		final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
+		final String imageUrl = random(50);
+		final String userId = random(20);
+		final Image expectedImage = new Image(random(5), random(10), random(15));
 
-			final String imageId = uuid.toString();
-			final InputStream imageInputStream = new ByteArrayInputStream("image".getBytes(Charset.defaultCharset()));
-			final String imageUrl = random(50);
-			final String userId = random(20);
-			final Image expectedImage = new Image(random(5), random(10), random(15));
+		Mockito.when(s3Repository.saveNewImage(Mockito.eq(imageInputStream), imageIdCaptor.capture())).thenReturn(imageUrl);
+		Mockito.when(dbRepository.saveNewImage(imageCaptor.capture())).thenReturn(expectedImage);
 
-			Mockito.when(s3Repository.saveNewImage(imageInputStream, imageId)).thenReturn(imageUrl);
-			Mockito.when(dbRepository.saveNewImage(new Image(imageId, imageUrl, userId))).thenReturn(expectedImage);
+		final Image savedImage = repository.saveNewImage(imageInputStream, userId);
 
-			final Image savedImage = repository.saveNewImage(imageInputStream, userId);
+		assertThat(savedImage).isEqualTo(expectedImage);
 
-			assertThat(savedImage).isEqualTo(expectedImage);
-		}
+		final String generatedId = imageIdCaptor.getValue();
+		assertThat(generatedId).matches("[a-zA-Z0-9]{24}");
+
+		final Image capturedImage = imageCaptor.getValue();
+		assertThat(capturedImage.getImageId()).isEqualTo(generatedId);
+		assertThat(capturedImage.getImageUrl()).isEqualTo(imageUrl);
+		assertThat(capturedImage.getOwningUserId()).isEqualTo(userId);
 	}
 
 	@Test

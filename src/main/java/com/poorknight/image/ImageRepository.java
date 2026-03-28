@@ -1,7 +1,8 @@
 package com.poorknight.image;
 
+import org.apache.commons.lang3.RandomStringUtils;
+
 import java.io.InputStream;
-import java.util.UUID;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -17,7 +18,7 @@ public class ImageRepository {
 
 	public Image saveNewImage(final InputStream imageInputStream, final String owningUser) {
 		validateUserForSave(owningUser);
-		final String imageId = UUID.randomUUID().toString();
+		final String imageId = RandomStringUtils.randomAlphanumeric(24);
 		final String imageUrl = s3Repository.saveNewImage(imageInputStream, imageId);
 		return dbRepository.saveNewImage(new Image(imageId, imageUrl, owningUser));
 	}
