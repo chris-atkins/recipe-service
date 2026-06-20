@@ -12,6 +12,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +27,7 @@ import static org.junit.Assert.fail;
 public class PostgresRecipeRepositoryTest {
 
     private RecipeRepository recipeRepository;
+    private DataSource dataSource;
 
 
     @BeforeAll
@@ -37,12 +42,14 @@ public class PostgresRecipeRepositoryTest {
 
     @BeforeEach
     public void setup() {
-        recipeRepository = new PostgresRecipeRepository(PostgresTestHelper.buildDataSource());
+        dataSource = PostgresTestHelper.buildDataSource();
+        recipeRepository = new PostgresRecipeRepository(dataSource);
     }
 
     @AfterEach
-    public void tearDown() {
+    public void tearDown() throws Exception {
         PostgresTestHelper.deleteAllRecipes();
+        ((AutoCloseable) dataSource).close();
     }
 
     @Test
@@ -66,6 +73,54 @@ public class PostgresRecipeRepositoryTest {
         assertThat(foundRecipe.getOwningUserId().getValue(), equalTo("userId"));
         assertThat(foundRecipe.getImage().getImageId(), equalTo("imageId"));
         assertThat(foundRecipe.getImage().getImageUrl(), equalTo("imageUrl"));
+    }
+
+    @Test
+    public void saveAndGet_PreservesCategoryAndTags() throws Exception {
+        final Recipe recipe = new Recipe(null, "name", "content", new Recipe.UserId("userId"), null, "Main Dish", Arrays.asList("Vegetarian", "Quick & Easy"));
+
+        final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
+        Assertions.assertThat(savedRecipe.getCategory()).isEqualTo("Main Dish");
+        Assertions.assertThat(savedRecipe.getTags()).containsExactlyInAnyOrder("Vegetarian", "Quick & Easy");
+
+        final Recipe foundRecipe = recipeRepository.findRecipeById(savedRecipe.getId());
+        Assertions.assertThat(foundRecipe.getCategory()).isEqualTo("Main Dish");
+        Assertions.assertThat(foundRecipe.getTags()).containsExactlyInAnyOrder("Vegetarian", "Quick & Easy");
+    }
+
+    @Test
+    public void saveAndGet_WithNoTagsAndNullCategory_Works() throws Exception {
+        final Recipe recipe = new Recipe("name", "content", new Recipe.UserId("userId"));
+
+        final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
+        final Recipe foundRecipe = recipeRepository.findRecipeById(savedRecipe.getId());
+
+        Assertions.assertThat(foundRecipe.getCategory()).isNull();
+        Assertions.assertThat(foundRecipe.getTags()).isEmpty();
+    }
+
+    @Test
+    public void updateRecipe_CanChangeCategoryAndTags() throws Exception {
+        final Recipe recipe = new Recipe(null, "name", "content", new Recipe.UserId("userId"), null, "Main Dish", Arrays.asList("Vegetarian", "Quick"));
+        final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
+
+        final Recipe recipeToUpdate = new Recipe(savedRecipe.getId(), "name", "content", savedRecipe.getOwningUserId(), null, "Dessert", Arrays.asList("Vegan"));
+        recipeRepository.updateRecipe(recipeToUpdate);
+
+        final Recipe foundRecipe = recipeRepository.findRecipeById(savedRecipe.getId());
+        Assertions.assertThat(foundRecipe.getCategory()).isEqualTo("Dessert");
+        Assertions.assertThat(foundRecipe.getTags()).containsExactly("Vegan");
+    }
+
+    @Test
+    public void deletingARecipe_CascadeDeletesItsTags() throws Exception {
+        final Recipe recipe = new Recipe(null, "name", "content", new Recipe.UserId("userId"), null, "Main Dish", Arrays.asList("Vegetarian", "Quick"));
+        final Recipe savedRecipe = recipeRepository.saveNewRecipe(recipe);
+        Assertions.assertThat(countTagRows(savedRecipe.getId().getValue())).isEqualTo(2);
+
+        recipeRepository.deleteRecipe(savedRecipe.getId());
+
+        Assertions.assertThat(countTagRows(savedRecipe.getId().getValue())).isEqualTo(0);
     }
 
     @Test
@@ -345,6 +400,19 @@ public class PostgresRecipeRepositoryTest {
         assertThat(findRecipeByName("deleteWorks_name1", recipeListAfterDelete), nullValue());
         assertThat(findRecipeByName("deleteWorks_name2", recipeListAfterDelete), notNullValue());
         assertThat(findRecipeByName("deleteWorks_name3", recipeListAfterDelete), notNullValue());
+    }
+
+    private int countTagRows(final String recipeId) throws Exception {
+        final DataSource dataSource = PostgresTestHelper.buildDataSource();
+        try (Connection conn = dataSource.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement("SELECT count(*) FROM recipe_tag WHERE recipe_id = ?");
+            statement.setString(1, recipeId);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } finally {
+            ((AutoCloseable) dataSource).close();
+        }
     }
 
     private void saveRecipes(final Recipe... recipes) {

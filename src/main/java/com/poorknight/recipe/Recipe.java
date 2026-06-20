@@ -1,5 +1,8 @@
 package com.poorknight.recipe;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 @SuppressWarnings("WeakerAccess")
@@ -10,6 +13,8 @@ public class Recipe {
 	private final String content;
 	private final UserId owningUserId;
 	private final RecipeImage image;
+	private final String category;
+	private final List<String> tags;
 
 	public Recipe(final String name, final String content, final UserId owningUserId) {
 		this(null, name, content, owningUserId, null);
@@ -24,11 +29,17 @@ public class Recipe {
 	}
 
 	public Recipe(final RecipeId id, final String name, final String content, final UserId owningUserId, RecipeImage image) {
+		this(id, name, content, owningUserId, image, null, null);
+	}
+
+	public Recipe(final RecipeId id, final String name, final String content, final UserId owningUserId, final RecipeImage image, final String category, final List<String> tags) {
 		this.id = id;
 		this.name = name;
 		this.content = content;
 		this.owningUserId = owningUserId;
 		this.image = image;
+		this.category = category;
+		this.tags = (tags == null) ? Collections.emptyList() : new ArrayList<>(tags);
 	}
 
 	public RecipeId getId() {
@@ -49,6 +60,14 @@ public class Recipe {
 
 	public RecipeImage getImage() {
 		return this.image;
+	}
+
+	public String getCategory() {
+		return this.category;
+	}
+
+	public List<String> getTags() {
+		return this.tags;
 	}
 
 	public static class RecipeId {
@@ -154,12 +173,12 @@ public class Recipe {
 		final Recipe recipe = (Recipe) o;
 		return Objects.equals(id, recipe.id) && Objects.equals(name, recipe.name) && Objects.equals(content,
 				recipe.content) && Objects.equals(owningUserId, recipe.owningUserId) && Objects.equals(image,
-				recipe.image);
+				recipe.image) && Objects.equals(category, recipe.category) && Objects.equals(tags, recipe.tags);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name, content, owningUserId, image);
+		return Objects.hash(id, name, content, owningUserId, image, category, tags);
 	}
 
 	@Override
@@ -170,6 +189,8 @@ public class Recipe {
 				", content='" + content + '\'' +
 				", owningUserId=" + owningUserId +
 				", image=" + image +
+				", category='" + category + '\'' +
+				", tags=" + tags +
 				'}';
 	}
 }

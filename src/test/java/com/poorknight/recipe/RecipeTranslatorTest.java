@@ -40,6 +40,15 @@ public class RecipeTranslatorTest {
 	}
 
 	@Test
+	public void toApi_TranslatesCategoryAndTags() throws Exception {
+		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1, new UserId(USER_ID_1), RECIPE_IMAGE, "Main Dish", Arrays.asList("Vegetarian", "Quick & Easy"));
+		final ApiRecipe translatedRecipe = translator.toApi(recipe, new UserId(USER_ID_1));
+
+		assertThat(translatedRecipe.getCategory()).isEqualTo("Main Dish");
+		assertThat(translatedRecipe.getTags()).containsExactly("Vegetarian", "Quick & Easy");
+	}
+
+	@Test
 	public void toApi_WithUserIdThatIsNotARecipesOwner_ReturnsFalseForEditable() throws Exception {
 		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1, new UserId(USER_ID_1));
 		final ApiRecipe translatedRecipe = translator.toApi(recipe, new UserId(USER_ID_2));
@@ -114,6 +123,17 @@ public class RecipeTranslatorTest {
 		assertThat(translatedRecipe.getContent()).isEqualTo(CONTENT_1);
 		assertThat(translatedRecipe.getOwningUserId()).isEqualTo(new UserId(USER_ID_1));
 		assertThat(translatedRecipe.getImage()).isEqualTo(RECIPE_IMAGE);
+	}
+
+	@Test
+	public void toDomain_TranslatesCategoryAndTags() throws Exception {
+		final ApiRecipe apiRecipe = new ApiRecipe(ID_1, NAME_1, CONTENT_1, false, RECIPE_IMAGE);
+		apiRecipe.setCategory("Dessert");
+		apiRecipe.setTags(Arrays.asList("Vegan"));
+		final Recipe translatedRecipe = translator.toDomain(apiRecipe, new UserId(USER_ID_1));
+
+		assertThat(translatedRecipe.getCategory()).isEqualTo("Dessert");
+		assertThat(translatedRecipe.getTags()).containsExactly("Vegan");
 	}
 
 	@Test

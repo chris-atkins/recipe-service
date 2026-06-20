@@ -1,5 +1,7 @@
 package com.poorknight.recipe;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -9,6 +11,8 @@ public class ApiRecipe {
 	private String recipeContent;
 	private boolean editable;
 	private RecipeImage image;
+	private String category;
+	private List<String> tags = new ArrayList<>();
 
 	public ApiRecipe() {
 		this(null, null, null, false);
@@ -71,6 +75,22 @@ public class ApiRecipe {
 		this.image = image;
 	}
 
+	public String getCategory() {
+		return category;
+	}
+
+	public void setCategory(final String category) {
+		this.category = category;
+	}
+
+	public List<String> getTags() {
+		return tags;
+	}
+
+	public void setTags(final List<String> tags) {
+		this.tags = (tags == null) ? new ArrayList<>() : tags;
+	}
+
 	@Override
 	public boolean equals(final Object o) {
 		if (this == o) return true;
@@ -79,12 +99,12 @@ public class ApiRecipe {
 		return editable == apiRecipe.editable && Objects.equals(recipeId, apiRecipe.recipeId) && Objects.equals(
 				recipeName,
 				apiRecipe.recipeName) && Objects.equals(recipeContent, apiRecipe.recipeContent) && Objects.equals(image,
-				apiRecipe.image);
+				apiRecipe.image) && Objects.equals(category, apiRecipe.category) && Objects.equals(tags, apiRecipe.tags);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(recipeId, recipeName, recipeContent, editable, image);
+		return Objects.hash(recipeId, recipeName, recipeContent, editable, image, category, tags);
 	}
 
 	@Override
@@ -95,6 +115,8 @@ public class ApiRecipe {
 				", recipeContent='" + recipeContent + '\'' +
 				", editable=" + editable +
 				", image=" + image +
+				", category='" + category + '\'' +
+				", tags=" + tags +
 				'}';
 	}
 }

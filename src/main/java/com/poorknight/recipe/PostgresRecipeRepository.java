@@ -25,25 +25,37 @@ public class PostgresRecipeRepository implements RecipeRepository {
             throw new RuntimeException("Only new recipes can be saved in this way.  There should not be a RecipeId, but one was found: " + recipe.getId().getValue());
         }
 
+        String newId = generateNewId();
         try (Connection conn = this.getConnection()) {
-            PreparedStatement statement = conn.prepareStatement(
-                    "insert into recipe(id,name,content,owning_user_id,image) values(?,?,?,?,?)"
-            );
-            String newId = generateNewId();
-            statement.setString(1, newId);
-            statement.setString(2, recipe.getName());
-            statement.setString(3, recipe.getContent());
-            statement.setString(4, recipe.getOwningUserId().getValue());
-            statement.setObject(5, buildImageJsonObject(recipe));
-            statement.execute();
-            statement.close();
+            conn.setAutoCommit(false);
+            try {
+                PreparedStatement statement = conn.prepareStatement(
+                        "insert into recipe(id,name,content,owning_user_id,image,category) values(?,?,?,?,?,?)"
+                );
+                statement.setString(1, newId);
+                statement.setString(2, recipe.getName());
+                statement.setString(3, recipe.getContent());
+                statement.setString(4, recipe.getOwningUserId().getValue());
+                statement.setObject(5, buildImageJsonObject(recipe));
+                statement.setString(6, recipe.getCategory());
+                statement.execute();
+                statement.close();
+
+                insertTags(conn, newId, recipe.getTags());
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
 
             return new Recipe(
                     new Recipe.RecipeId(newId),
                     recipe.getName(),
                     recipe.getContent(),
                     recipe.getOwningUserId(),
-                    recipe.getImage());
+                    recipe.getImage(),
+                    recipe.getCategory(),
+                    recipe.getTags());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -57,6 +69,60 @@ public class PostgresRecipeRepository implements RecipeRepository {
             jsonObject.setValue(recipe.getImage().toJsonString());
         }
         return jsonObject;
+    }
+
+    private void insertTags(Connection conn, String recipeId, List<String> tags) throws SQLException {
+        if (tags == null || tags.isEmpty()) {
+            return;
+        }
+        Set<String> distinctTags = new LinkedHashSet<>(tags);
+        PreparedStatement statement = conn.prepareStatement("insert into recipe_tag(recipe_id,tag) values(?,?)");
+        for (String tag : distinctTags) {
+            statement.setString(1, recipeId);
+            statement.setString(2, tag);
+            statement.addBatch();
+        }
+        statement.executeBatch();
+        statement.close();
+    }
+
+    private void deleteTags(Connection conn, String recipeId) throws SQLException {
+        PreparedStatement statement = conn.prepareStatement("DELETE FROM recipe_tag WHERE recipe_id = ?");
+        statement.setString(1, recipeId);
+        statement.execute();
+        statement.close();
+    }
+
+    private List<Recipe> attachTags(Connection conn, List<Recipe> recipes) throws SQLException {
+        if (recipes.isEmpty()) {
+            return recipes;
+        }
+        Map<String, List<String>> tagsByRecipeId = fetchTagsByRecipeId(conn, recipes);
+        List<Recipe> result = new ArrayList<>(recipes.size());
+        for (Recipe recipe : recipes) {
+            List<String> tags = tagsByRecipeId.getOrDefault(recipe.getId().getValue(), Collections.emptyList());
+            result.add(new Recipe(recipe.getId(), recipe.getName(), recipe.getContent(), recipe.getOwningUserId(), recipe.getImage(), recipe.getCategory(), tags));
+        }
+        return result;
+    }
+
+    private Map<String, List<String>> fetchTagsByRecipeId(Connection conn, List<Recipe> recipes) throws SQLException {
+        List<String> ids = recipes.stream().map(recipe -> recipe.getId().getValue()).toList();
+        String inClause = buildIdInClause(ids.size());
+        PreparedStatement statement = conn.prepareStatement("SELECT recipe_id, tag FROM recipe_tag WHERE recipe_id IN (" + inClause + ")");
+        for (int i = 0; i < ids.size(); i++) {
+            statement.setString(i + 1, ids.get(i));
+        }
+        statement.execute();
+        ResultSet resultSet = statement.getResultSet();
+        Map<String, List<String>> tagsByRecipeId = new HashMap<>();
+        while (resultSet.next()) {
+            String recipeId = resultSet.getString("recipe_id");
+            String tag = resultSet.getString("tag");
+            tagsByRecipeId.computeIfAbsent(recipeId, key -> new ArrayList<>()).add(tag);
+        }
+        statement.close();
+        return tagsByRecipeId;
     }
 
     private String generateNewId() {
@@ -84,23 +150,36 @@ public class PostgresRecipeRepository implements RecipeRepository {
         }
 
         try (Connection conn = this.getConnection()) {
-            PreparedStatement statement = conn.prepareStatement(
-                    "UPDATE recipe SET name=?,content=?,image=? WHERE id=?"
-            );
-            statement.setString(1, recipeToUpdate.getName());
-            statement.setString(2, recipeToUpdate.getContent());
-            PGobject jsonObject = buildImageJsonObject(recipeToUpdate);
-            statement.setObject(3, jsonObject);
-            statement.setString(4, recipeToUpdate.getId().getValue());
+            conn.setAutoCommit(false);
+            try {
+                PreparedStatement statement = conn.prepareStatement(
+                        "UPDATE recipe SET name=?,content=?,image=?,category=? WHERE id=?"
+                );
+                statement.setString(1, recipeToUpdate.getName());
+                statement.setString(2, recipeToUpdate.getContent());
+                PGobject jsonObject = buildImageJsonObject(recipeToUpdate);
+                statement.setObject(3, jsonObject);
+                statement.setString(4, recipeToUpdate.getCategory());
+                statement.setString(5, recipeToUpdate.getId().getValue());
+                statement.execute();
+                statement.close();
 
-            statement.execute();
-            statement.close();
+                deleteTags(conn, recipeToUpdate.getId().getValue());
+                insertTags(conn, recipeToUpdate.getId().getValue(), recipeToUpdate.getTags());
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+
             return new Recipe(
                     new Recipe.RecipeId(recipeToUpdate.getId().getValue()),
                     recipeToUpdate.getName(),
                     recipeToUpdate.getContent(),
                     originalRecipe.getOwningUserId(),
-                    recipeToUpdate.getImage());
+                    recipeToUpdate.getImage(),
+                    recipeToUpdate.getCategory(),
+                    recipeToUpdate.getTags());
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -117,7 +196,10 @@ public class PostgresRecipeRepository implements RecipeRepository {
             ResultSet resultSet = statement.getResultSet();
             Recipe recipe = recipeFrom(resultSet);
             statement.close();
-            return recipe;
+            if (recipe == null) {
+                return null;
+            }
+            return attachTags(conn, Collections.singletonList(recipe)).get(0);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -140,7 +222,8 @@ public class PostgresRecipeRepository implements RecipeRepository {
         String content = resultSet.getString("content");
         Recipe.UserId owningUserId = new Recipe.UserId(resultSet.getString("owning_user_id"));
         RecipeImage image = imageFromJson(resultSet.getString("image"));
-        return new Recipe(id, name, content, owningUserId, image);
+        String category = resultSet.getString("category");
+        return new Recipe(id, name, content, owningUserId, image, category, Collections.emptyList());
     }
 
     private RecipeImage imageFromJson(String jsonString) throws JsonProcessingException {
@@ -157,7 +240,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
             statement.execute();
             List<Recipe> recipes = buildRecipeListFromResultSet(statement.getResultSet());
             statement.close();
-            return recipes;
+            return attachTags(conn, recipes);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -183,7 +266,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
             statement.execute();
             List<Recipe> recipes = buildRecipeListFromResultSet(statement.getResultSet());
             statement.close();
-            return recipes;
+            return attachTags(conn, recipes);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -207,7 +290,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
             statement.execute();
             List<Recipe> recipes = buildRecipeListFromResultSet(statement.getResultSet());
             statement.close();
-            return recipes;
+            return attachTags(conn, recipes);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
