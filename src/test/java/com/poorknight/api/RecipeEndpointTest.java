@@ -306,4 +306,58 @@ public class RecipeEndpointTest {
 			assertThat(e.getResponse().getStatus()).isEqualTo(401);
 		}
 	}
+
+	@Test
+	public void rateRecipe_DelegatesToItsCollaborators() throws Exception {
+		final UserId userId = new UserId("user");
+		final RecipeId recipeId = new RecipeId("id");
+		final Recipe ratedRecipe = new Recipe(recipeId, "name", "content", new UserId("user"));
+		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content", false);
+
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.rateRecipe(recipeId, userId, 5)).thenReturn(ratedRecipe);
+		when(translator.toApi(ratedRecipe, userId)).thenReturn(apiRecipe);
+
+		final ApiRecipe results = endpoint.rateRecipe("id", new ApiRatingRequest(5), "user");
+		assertThat(results).isEqualTo(apiRecipe);
+	}
+
+	@Test
+	public void rateRecipe_Throws401_WhenNullUserIdIsSpecified() throws Exception {
+		try {
+			endpoint.rateRecipe("id", new ApiRatingRequest(5), null);
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void rateRecipe_Throws400_WhenValueIsOutOfRange() throws Exception {
+		when(translator.userIdFor("user")).thenReturn(new UserId("user"));
+		try {
+			endpoint.rateRecipe("id", new ApiRatingRequest(6), "user");
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(400);
+		}
+	}
+
+	@Test
+	public void rateRecipe_ThrowsNotFound_WhenRecipeIsMissing() throws Exception {
+		final UserId userId = new UserId("user");
+		final RecipeId recipeId = new RecipeId("id");
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		final NoRecipeExistsForIdException repositoryException = new NoRecipeExistsForIdException(recipeId);
+		when(repository.rateRecipe(recipeId, userId, 5)).thenThrow(repositoryException);
+
+		try {
+			endpoint.rateRecipe("id", new ApiRatingRequest(5), "user");
+			fail("expecting exception");
+		} catch (final NotFoundException e) {
+			assertThat(e.getCause()).isEqualTo(repositoryException);
+		}
+	}
 }

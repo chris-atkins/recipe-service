@@ -138,6 +138,29 @@ public class RecipeEndpoint {
 		return recipeTranslator.toApi(savedRecipe, requestingUserId);
 	}
 
+	@PUT
+	@Timed(name = "rateRecipe")
+	@Path("/{id}/rating")
+	public ApiRecipe rateRecipe(@PathParam("id") final String recipeId, final ApiRatingRequest ratingRequest, @HeaderParam("RequestingUser") final String requestingUserIdString) {
+		final UserId requestingUserId = recipeTranslator.userIdFor(requestingUserIdString);
+		if (requestingUserId == null) {
+			throw new WebApplicationException("A user id must be in the header to perform this operation.", 401);
+		}
+
+		final int value = (ratingRequest == null) ? 0 : ratingRequest.getValue();
+		if (value < 1 || value > 5) {
+			throw new WebApplicationException("A rating must be between 1 and 5.", 400);
+		}
+
+		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
+		try {
+			final Recipe ratedRecipe = recipeRepository.rateRecipe(id, requestingUserId, value);
+			return recipeTranslator.toApi(ratedRecipe, requestingUserId);
+		} catch (NoRecipeExistsForIdException e) {
+			throw new NotFoundException(e);
+		}
+	}
+
 	@DELETE
 	@Timed(name = "deleteRecipe")
 	@Path("/{id}")

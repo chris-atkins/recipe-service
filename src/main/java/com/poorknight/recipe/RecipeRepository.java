@@ -17,5 +17,7 @@ public interface RecipeRepository {
 
     List<Recipe> searchRecipes(List<SearchTag> searchTags);
 
+    Recipe rateRecipe(Recipe.RecipeId recipeId, Recipe.UserId userId, int rating);
+
     void deleteRecipe(Recipe.RecipeId id);
 }

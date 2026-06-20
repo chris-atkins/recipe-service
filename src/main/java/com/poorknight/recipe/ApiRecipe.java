@@ -13,6 +13,7 @@ public class ApiRecipe {
 	private RecipeImage image;
 	private String category;
 	private List<String> tags = new ArrayList<>();
+	private ApiRecipeRating rating;
 
 	public ApiRecipe() {
 		this(null, null, null, false);
@@ -91,6 +92,14 @@ public class ApiRecipe {
 		this.tags = (tags == null) ? new ArrayList<>() : tags;
 	}
 
+	public ApiRecipeRating getRating() {
+		return rating;
+	}
+
+	public void setRating(final ApiRecipeRating rating) {
+		this.rating = rating;
+	}
+
 	@Override
 	public boolean equals(final Object o) {
 		if (this == o) return true;
@@ -99,12 +108,12 @@ public class ApiRecipe {
 		return editable == apiRecipe.editable && Objects.equals(recipeId, apiRecipe.recipeId) && Objects.equals(
 				recipeName,
 				apiRecipe.recipeName) && Objects.equals(recipeContent, apiRecipe.recipeContent) && Objects.equals(image,
-				apiRecipe.image) && Objects.equals(category, apiRecipe.category) && Objects.equals(tags, apiRecipe.tags);
+				apiRecipe.image) && Objects.equals(category, apiRecipe.category) && Objects.equals(tags, apiRecipe.tags) && Objects.equals(rating, apiRecipe.rating);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(recipeId, recipeName, recipeContent, editable, image, category, tags);
+		return Objects.hash(recipeId, recipeName, recipeContent, editable, image, category, tags, rating);
 	}
 
 	@Override
@@ -117,6 +126,7 @@ public class ApiRecipe {
 				", image=" + image +
 				", category='" + category + '\'' +
 				", tags=" + tags +
+				", rating=" + rating +
 				'}';
 	}
 }

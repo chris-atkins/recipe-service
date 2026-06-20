@@ -124,6 +124,69 @@ public class PostgresRecipeRepositoryTest {
     }
 
     @Test
+    public void rateRecipe_StoresAndAggregatesARating() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+
+        final Recipe rated = recipeRepository.rateRecipe(saved.getId(), new Recipe.UserId("rater1"), 5);
+        Assertions.assertThat(rated.getRating().getAverage()).isEqualTo(5.0);
+        Assertions.assertThat(rated.getRating().getCount()).isEqualTo(1);
+
+        final Recipe found = recipeRepository.findRecipeById(saved.getId());
+        Assertions.assertThat(found.getRating().getAverage()).isEqualTo(5.0);
+        Assertions.assertThat(found.getRating().getCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void rateRecipe_AveragesAcrossMultipleUsers() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+
+        recipeRepository.rateRecipe(saved.getId(), new Recipe.UserId("rater1"), 5);
+        final Recipe rated = recipeRepository.rateRecipe(saved.getId(), new Recipe.UserId("rater2"), 4);
+
+        Assertions.assertThat(rated.getRating().getAverage()).isEqualTo(4.5);
+        Assertions.assertThat(rated.getRating().getCount()).isEqualTo(2);
+    }
+
+    @Test
+    public void rateRecipe_SameUserReRating_UpdatesInsteadOfAddingARow() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+
+        recipeRepository.rateRecipe(saved.getId(), new Recipe.UserId("rater1"), 2);
+        final Recipe rated = recipeRepository.rateRecipe(saved.getId(), new Recipe.UserId("rater1"), 5);
+
+        Assertions.assertThat(rated.getRating().getAverage()).isEqualTo(5.0);
+        Assertions.assertThat(rated.getRating().getCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void findRecipe_WithNoRatings_ReturnsZeroAggregate() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+
+        final Recipe found = recipeRepository.findRecipeById(saved.getId());
+
+        Assertions.assertThat(found.getRating().getAverage()).isEqualTo(0.0);
+        Assertions.assertThat(found.getRating().getCount()).isEqualTo(0);
+    }
+
+    @Test
+    public void rateRecipe_ForMissingRecipe_ThrowsNoRecipeExists() throws Exception {
+        final RecipeId missingId = new RecipeId(RandomStringUtils.randomAlphanumeric(24));
+        org.junit.jupiter.api.Assertions.assertThrows(NoRecipeExistsForIdException.class,
+                () -> recipeRepository.rateRecipe(missingId, new Recipe.UserId("rater1"), 5));
+    }
+
+    @Test
+    public void deletingARecipe_CascadeDeletesItsRatings() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+        recipeRepository.rateRecipe(saved.getId(), new Recipe.UserId("rater1"), 5);
+        Assertions.assertThat(countRatingRows(saved.getId().getValue())).isEqualTo(1);
+
+        recipeRepository.deleteRecipe(saved.getId());
+
+        Assertions.assertThat(countRatingRows(saved.getId().getValue())).isEqualTo(0);
+    }
+
+    @Test
     public void getRecipe_WhereNoneExists_ReturnsNull() throws Exception {
         final String validMongoId = RandomStringUtils.randomAlphanumeric(24);
         final Recipe recipe = recipeRepository.findRecipeById(new RecipeId(validMongoId));
@@ -406,6 +469,19 @@ public class PostgresRecipeRepositoryTest {
         final DataSource dataSource = PostgresTestHelper.buildDataSource();
         try (Connection conn = dataSource.getConnection()) {
             PreparedStatement statement = conn.prepareStatement("SELECT count(*) FROM recipe_tag WHERE recipe_id = ?");
+            statement.setString(1, recipeId);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            return resultSet.getInt(1);
+        } finally {
+            ((AutoCloseable) dataSource).close();
+        }
+    }
+
+    private int countRatingRows(final String recipeId) throws Exception {
+        final DataSource dataSource = PostgresTestHelper.buildDataSource();
+        try (Connection conn = dataSource.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement("SELECT count(*) FROM recipe_rating WHERE recipe_id = ?");
             statement.setString(1, recipeId);
             ResultSet resultSet = statement.executeQuery();
             resultSet.next();

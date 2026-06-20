@@ -125,6 +125,41 @@ public class PostgresRecipeRepository implements RecipeRepository {
         return tagsByRecipeId;
     }
 
+    private List<Recipe> attachRatings(Connection conn, List<Recipe> recipes) throws SQLException {
+        if (recipes.isEmpty()) {
+            return recipes;
+        }
+        Map<String, RatingSummary> ratingsByRecipeId = fetchRatingsByRecipeId(conn, recipes);
+        List<Recipe> result = new ArrayList<>(recipes.size());
+        for (Recipe recipe : recipes) {
+            RatingSummary rating = ratingsByRecipeId.getOrDefault(recipe.getId().getValue(), RatingSummary.none());
+            result.add(new Recipe(recipe.getId(), recipe.getName(), recipe.getContent(), recipe.getOwningUserId(), recipe.getImage(), recipe.getCategory(), recipe.getTags(), rating));
+        }
+        return result;
+    }
+
+    private Map<String, RatingSummary> fetchRatingsByRecipeId(Connection conn, List<Recipe> recipes) throws SQLException {
+        List<String> ids = recipes.stream().map(recipe -> recipe.getId().getValue()).toList();
+        String inClause = buildIdInClause(ids.size());
+        PreparedStatement statement = conn.prepareStatement(
+                "SELECT recipe_id, ROUND(AVG(rating), 1) AS avg_rating, COUNT(*) AS rating_count " +
+                        "FROM recipe_rating WHERE recipe_id IN (" + inClause + ") GROUP BY recipe_id");
+        for (int i = 0; i < ids.size(); i++) {
+            statement.setString(i + 1, ids.get(i));
+        }
+        statement.execute();
+        ResultSet resultSet = statement.getResultSet();
+        Map<String, RatingSummary> ratingsByRecipeId = new HashMap<>();
+        while (resultSet.next()) {
+            String recipeId = resultSet.getString("recipe_id");
+            double average = resultSet.getDouble("avg_rating");
+            int count = resultSet.getInt("rating_count");
+            ratingsByRecipeId.put(recipeId, new RatingSummary(average, count));
+        }
+        statement.close();
+        return ratingsByRecipeId;
+    }
+
     private String generateNewId() {
         return RandomStringUtils.randomAlphanumeric(24);
     }
@@ -199,7 +234,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
             if (recipe == null) {
                 return null;
             }
-            return attachTags(conn, Collections.singletonList(recipe)).get(0);
+            return attachRatings(conn, attachTags(conn, Collections.singletonList(recipe))).get(0);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -240,7 +275,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
             statement.execute();
             List<Recipe> recipes = buildRecipeListFromResultSet(statement.getResultSet());
             statement.close();
-            return attachTags(conn, recipes);
+            return attachRatings(conn, attachTags(conn, recipes));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -266,7 +301,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
             statement.execute();
             List<Recipe> recipes = buildRecipeListFromResultSet(statement.getResultSet());
             statement.close();
-            return attachTags(conn, recipes);
+            return attachRatings(conn, attachTags(conn, recipes));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -290,7 +325,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
             statement.execute();
             List<Recipe> recipes = buildRecipeListFromResultSet(statement.getResultSet());
             statement.close();
-            return attachTags(conn, recipes);
+            return attachRatings(conn, attachTags(conn, recipes));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -313,5 +348,26 @@ public class PostgresRecipeRepository implements RecipeRepository {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Recipe rateRecipe(Recipe.RecipeId recipeId, Recipe.UserId userId, int rating) {
+        if (findRecipeById(recipeId) == null) {
+            throw new NoRecipeExistsForIdException(recipeId);
+        }
+        try (Connection conn = this.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement(
+                    "INSERT INTO recipe_rating(recipe_id,user_id,rating) VALUES (?,?,?) " +
+                            "ON CONFLICT (recipe_id,user_id) DO UPDATE SET rating = EXCLUDED.rating"
+            );
+            statement.setString(1, recipeId.getValue());
+            statement.setString(2, userId.getValue());
+            statement.setInt(3, rating);
+            statement.execute();
+            statement.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return findRecipeById(recipeId);
     }
 }

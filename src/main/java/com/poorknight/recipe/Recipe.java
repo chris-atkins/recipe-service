@@ -15,6 +15,7 @@ public class Recipe {
 	private final RecipeImage image;
 	private final String category;
 	private final List<String> tags;
+	private final RatingSummary rating;
 
 	public Recipe(final String name, final String content, final UserId owningUserId) {
 		this(null, name, content, owningUserId, null);
@@ -33,6 +34,10 @@ public class Recipe {
 	}
 
 	public Recipe(final RecipeId id, final String name, final String content, final UserId owningUserId, final RecipeImage image, final String category, final List<String> tags) {
+		this(id, name, content, owningUserId, image, category, tags, RatingSummary.none());
+	}
+
+	public Recipe(final RecipeId id, final String name, final String content, final UserId owningUserId, final RecipeImage image, final String category, final List<String> tags, final RatingSummary rating) {
 		this.id = id;
 		this.name = name;
 		this.content = content;
@@ -40,6 +45,7 @@ public class Recipe {
 		this.image = image;
 		this.category = category;
 		this.tags = (tags == null) ? Collections.emptyList() : new ArrayList<>(tags);
+		this.rating = (rating == null) ? RatingSummary.none() : rating;
 	}
 
 	public RecipeId getId() {
@@ -68,6 +74,10 @@ public class Recipe {
 
 	public List<String> getTags() {
 		return this.tags;
+	}
+
+	public RatingSummary getRating() {
+		return this.rating;
 	}
 
 	public static class RecipeId {
@@ -173,12 +183,12 @@ public class Recipe {
 		final Recipe recipe = (Recipe) o;
 		return Objects.equals(id, recipe.id) && Objects.equals(name, recipe.name) && Objects.equals(content,
 				recipe.content) && Objects.equals(owningUserId, recipe.owningUserId) && Objects.equals(image,
-				recipe.image) && Objects.equals(category, recipe.category) && Objects.equals(tags, recipe.tags);
+				recipe.image) && Objects.equals(category, recipe.category) && Objects.equals(tags, recipe.tags) && Objects.equals(rating, recipe.rating);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name, content, owningUserId, image, category, tags);
+		return Objects.hash(id, name, content, owningUserId, image, category, tags, rating);
 	}
 
 	@Override
@@ -191,6 +201,7 @@ public class Recipe {
 				", image=" + image +
 				", category='" + category + '\'' +
 				", tags=" + tags +
+				", rating=" + rating +
 				'}';
 	}
 }

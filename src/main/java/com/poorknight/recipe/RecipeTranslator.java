@@ -14,7 +14,15 @@ public class RecipeTranslator {
 		final ApiRecipe apiRecipe = new ApiRecipe(recipe.getId().getValue(), recipe.getName(), recipe.getContent(), isEditable, recipe.getImage());
 		apiRecipe.setCategory(recipe.getCategory());
 		apiRecipe.setTags(recipe.getTags());
+		apiRecipe.setRating(toApiRating(recipe.getRating()));
 		return apiRecipe;
+	}
+
+	private ApiRecipeRating toApiRating(final RatingSummary rating) {
+		if (rating == null) {
+			return new ApiRecipeRating(0.0, 0);
+		}
+		return new ApiRecipeRating(rating.getAverage(), rating.getCount());
 	}
 
 	private boolean determineIsEditable(final UserId owningUserId, final UserId requestingUserId) {

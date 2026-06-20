@@ -49,6 +49,15 @@ public class RecipeTranslatorTest {
 	}
 
 	@Test
+	public void toApi_TranslatesRatingAggregate() throws Exception {
+		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1, new UserId(USER_ID_1), RECIPE_IMAGE, "Main Dish", Arrays.asList("Vegetarian"), new RatingSummary(4.3, 12));
+		final ApiRecipe translatedRecipe = translator.toApi(recipe, new UserId(USER_ID_1));
+
+		assertThat(translatedRecipe.getRating().getAverage()).isEqualTo(4.3);
+		assertThat(translatedRecipe.getRating().getCount()).isEqualTo(12);
+	}
+
+	@Test
 	public void toApi_WithUserIdThatIsNotARecipesOwner_ReturnsFalseForEditable() throws Exception {
 		final Recipe recipe = new Recipe(new RecipeId(ID_1), NAME_1, CONTENT_1, new UserId(USER_ID_1));
 		final ApiRecipe translatedRecipe = translator.toApi(recipe, new UserId(USER_ID_2));
