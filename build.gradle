@@ -65,7 +65,7 @@ shadowJar {
 
 run {
     args 'server', 'docker-config/config.yml'
-    environment 'POSTGRES_URL', System.getenv('POSTGRES_URL') ?: 'jdbc:postgresql://localhost:5432/recipe'
+    environment 'POSTGRES_URL', System.getenv('POSTGRES_URL') ?: 'jdbc:postgresql://localhost:5433/recipe'
     environment 'POSTGRES_USERNAME', System.getenv('POSTGRES_USERNAME') ?: 'recipe_user'
     environment 'POSTGRES_PASSWORD', System.getenv('POSTGRES_PASSWORD') ?: 'recipe_pass'
 }

@@ -23,3 +23,7 @@ recipe-service.iml
 
 #whats with the comments
 ca
+
+# Local dev run artifacts
+dev-backend.log
+docker-config/*.jar
