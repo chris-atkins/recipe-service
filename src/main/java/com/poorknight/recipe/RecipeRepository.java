@@ -17,6 +17,8 @@ public interface RecipeRepository {
 
     List<Recipe> searchRecipes(List<SearchTag> searchTags);
 
+    List<String> suggestTagsForCategory(String category, int limit);
+
     Recipe rateRecipe(Recipe.RecipeId recipeId, Recipe.UserId userId, int rating);
 
     void deleteRecipe(Recipe.RecipeId id);

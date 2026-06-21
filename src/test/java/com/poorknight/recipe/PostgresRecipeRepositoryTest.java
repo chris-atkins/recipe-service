@@ -187,6 +187,38 @@ public class PostgresRecipeRepositoryTest {
     }
 
     @Test
+    public void suggestTagsForCategory_ordersByUsageThenAlpha_scopedToCategory() throws Exception {
+        recipeRepository.saveNewRecipe(new Recipe(null, "r1", "c", new Recipe.UserId("u"), null, "Main Dish", Arrays.asList("Vegetarian", "Quick")));
+        recipeRepository.saveNewRecipe(new Recipe(null, "r2", "c", new Recipe.UserId("u"), null, "Main Dish", Arrays.asList("Vegetarian")));
+        recipeRepository.saveNewRecipe(new Recipe(null, "r3", "c", new Recipe.UserId("u"), null, "Main Dish", Arrays.asList("Spicy")));
+        recipeRepository.saveNewRecipe(new Recipe(null, "r4", "c", new Recipe.UserId("u"), null, "Dessert", Arrays.asList("Vegetarian")));
+
+        final List<String> suggestions = recipeRepository.suggestTagsForCategory("Main Dish", 24);
+
+        // Vegetarian used twice → first; the count-1 tags follow alphabetically. Dessert's tag is excluded.
+        Assertions.assertThat(suggestions).containsExactly("Vegetarian", "Quick", "Spicy");
+    }
+
+    @Test
+    public void suggestTagsForCategory_respectsLimit() throws Exception {
+        recipeRepository.saveNewRecipe(new Recipe(null, "r1", "c", new Recipe.UserId("u"), null, "Main Dish", Arrays.asList("Vegetarian", "Quick")));
+        recipeRepository.saveNewRecipe(new Recipe(null, "r2", "c", new Recipe.UserId("u"), null, "Main Dish", Arrays.asList("Vegetarian")));
+
+        final List<String> suggestions = recipeRepository.suggestTagsForCategory("Main Dish", 1);
+
+        Assertions.assertThat(suggestions).containsExactly("Vegetarian");
+    }
+
+    @Test
+    public void suggestTagsForCategory_unknownCategory_returnsEmpty() throws Exception {
+        recipeRepository.saveNewRecipe(new Recipe(null, "r1", "c", new Recipe.UserId("u"), null, "Main Dish", Arrays.asList("Vegetarian")));
+
+        final List<String> suggestions = recipeRepository.suggestTagsForCategory("Nonexistent", 24);
+
+        Assertions.assertThat(suggestions).isEmpty();
+    }
+
+    @Test
     public void getRecipe_WhereNoneExists_ReturnsNull() throws Exception {
         final String validMongoId = RandomStringUtils.randomAlphanumeric(24);
         final Recipe recipe = recipeRepository.findRecipeById(new RecipeId(validMongoId));

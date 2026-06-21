@@ -160,6 +160,27 @@ public class PostgresRecipeRepository implements RecipeRepository {
         return ratingsByRecipeId;
     }
 
+    @Override
+    public List<String> suggestTagsForCategory(final String category, final int limit) {
+        try (Connection conn = this.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement(
+                    "SELECT rt.tag FROM recipe_tag rt JOIN recipe r ON rt.recipe_id = r.id " +
+                            "WHERE r.category = ? GROUP BY rt.tag ORDER BY COUNT(*) DESC, rt.tag ASC LIMIT ?");
+            statement.setString(1, category);
+            statement.setInt(2, limit);
+            statement.execute();
+            ResultSet resultSet = statement.getResultSet();
+            List<String> tags = new ArrayList<>();
+            while (resultSet.next()) {
+                tags.add(resultSet.getString("tag"));
+            }
+            statement.close();
+            return tags;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private String generateNewId() {
         return RandomStringUtils.randomAlphanumeric(24);
     }

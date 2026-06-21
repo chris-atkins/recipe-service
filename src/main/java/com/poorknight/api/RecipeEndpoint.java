@@ -12,12 +12,15 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.Collections;
 import java.util.List;
 
 @Path("/recipe")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RecipeEndpoint {
+
+	private static final int TAG_SUGGESTION_LIMIT = 24;
 
 	private final RecipeRepository recipeRepository;
 	private final RecipeTranslator recipeTranslator;
@@ -91,6 +94,16 @@ public class RecipeEndpoint {
 		}
 
 		return recipeTranslator.toApi(recipe, requestingUserId);
+	}
+
+	@GET
+	@Timed(name = "getTagSuggestions")
+	@Path("/tag-suggestions")
+	public List<String> getTagSuggestions(@QueryParam("category") final String category) {
+		if (StringUtils.isEmpty(category)) {
+			return Collections.emptyList();
+		}
+		return recipeRepository.suggestTagsForCategory(category, TAG_SUGGESTION_LIMIT);
 	}
 
 	@POST

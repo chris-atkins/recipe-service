@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -359,5 +360,22 @@ public class RecipeEndpointTest {
 		} catch (final NotFoundException e) {
 			assertThat(e.getCause()).isEqualTo(repositoryException);
 		}
+	}
+
+	@Test
+	public void getTagSuggestions_delegatesToRepository() throws Exception {
+		final List<String> suggestions = List.of("Vegetarian", "Quick");
+		when(repository.suggestTagsForCategory("Main Dish", 24)).thenReturn(suggestions);
+
+		final List<String> result = endpoint.getTagSuggestions("Main Dish");
+
+		assertThat(result).isEqualTo(suggestions);
+	}
+
+	@Test
+	public void getTagSuggestions_blankCategory_returnsEmptyWithoutHittingRepository() throws Exception {
+		assertThat(endpoint.getTagSuggestions("")).isEmpty();
+		assertThat(endpoint.getTagSuggestions(null)).isEmpty();
+		verifyNoInteractions(repository);
 	}
 }
