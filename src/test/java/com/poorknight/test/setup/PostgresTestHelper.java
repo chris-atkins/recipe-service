@@ -18,10 +18,17 @@ public class PostgresTestHelper {
 			"postgres:16-alpine"
 	).withDatabaseName("recipe");
 
+	// ONE pool per container lifecycle, shared by all of a test class's tests — mirrors how prod
+	// builds a single shared HikariDataSource in RecipeServiceApplication.initializePostgres().
+	// Previously buildDataSource() minted a fresh 10-connection pool per test and most classes
+	// never closed it, so leaked pools piled up against the one Postgres → "too many clients already".
+	private static HikariDataSource sharedDataSource;
+
 	public static void startPostgresAndMigrateTables() {
 		postgres.start();
 		updateDatabaseQueryPrefixToMatchProd();
 		DatabaseSetup.migrateDatabaseTables(buildCoonnectionInfo());
+		sharedDataSource = createDataSource();
 	}
 
 	private static void updateDatabaseQueryPrefixToMatchProd() {
@@ -35,6 +42,10 @@ public class PostgresTestHelper {
 	}
 
 	public static void stopPostgres() {
+		if (sharedDataSource != null) {
+			sharedDataSource.close();
+			sharedDataSource = null;
+		}
 		postgres.stop();
 	}
 
@@ -43,10 +54,15 @@ public class PostgresTestHelper {
 	}
 
 	public static DataSource buildDataSource() {
+		return sharedDataSource;
+	}
+
+	private static HikariDataSource createDataSource() {
 		HikariConfig config = new HikariConfig();
 		config.setJdbcUrl(postgres.getJdbcUrl());
 		config.setUsername(postgres.getUsername());
 		config.setPassword(postgres.getPassword());
+		config.setMaximumPoolSize(5);  // tests run sequentially; one shared pool, far under Postgres max_connections
 		return new HikariDataSource(config);
 	}
 

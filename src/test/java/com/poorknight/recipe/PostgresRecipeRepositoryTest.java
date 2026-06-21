@@ -49,7 +49,6 @@ public class PostgresRecipeRepositoryTest {
     @AfterEach
     public void tearDown() throws Exception {
         PostgresTestHelper.deleteAllRecipes();
-        ((AutoCloseable) dataSource).close();
     }
 
     @Test
@@ -498,28 +497,22 @@ public class PostgresRecipeRepositoryTest {
     }
 
     private int countTagRows(final String recipeId) throws Exception {
-        final DataSource dataSource = PostgresTestHelper.buildDataSource();
-        try (Connection conn = dataSource.getConnection()) {
+        try (Connection conn = PostgresTestHelper.buildDataSource().getConnection()) {
             PreparedStatement statement = conn.prepareStatement("SELECT count(*) FROM recipe_tag WHERE recipe_id = ?");
             statement.setString(1, recipeId);
             ResultSet resultSet = statement.executeQuery();
             resultSet.next();
             return resultSet.getInt(1);
-        } finally {
-            ((AutoCloseable) dataSource).close();
         }
     }
 
     private int countRatingRows(final String recipeId) throws Exception {
-        final DataSource dataSource = PostgresTestHelper.buildDataSource();
-        try (Connection conn = dataSource.getConnection()) {
+        try (Connection conn = PostgresTestHelper.buildDataSource().getConnection()) {
             PreparedStatement statement = conn.prepareStatement("SELECT count(*) FROM recipe_rating WHERE recipe_id = ?");
             statement.setString(1, recipeId);
             ResultSet resultSet = statement.executeQuery();
             resultSet.next();
             return resultSet.getInt(1);
-        } finally {
-            ((AutoCloseable) dataSource).close();
         }
     }
 
