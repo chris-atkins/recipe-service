@@ -292,7 +292,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
     @Override
     public List<Recipe> findAllRecipes() {
         try (Connection conn = this.getConnection()) {
-            PreparedStatement statement = conn.prepareStatement("SELECT * from recipe");
+            PreparedStatement statement = conn.prepareStatement("SELECT * from recipe ORDER BY created_at DESC, id DESC");
             statement.execute();
             List<Recipe> recipes = buildRecipeListFromResultSet(statement.getResultSet());
             statement.close();
@@ -315,7 +315,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
         List<Recipe.RecipeId> validatedRecipeIds = recipeIdsToFind.stream().filter(Objects::nonNull).filter(r -> r.getValue() != null).toList();
         try (Connection conn = this.getConnection()) {
             String inClause = buildIdInClause(validatedRecipeIds.size());
-            PreparedStatement statement = conn.prepareStatement("SELECT * from recipe WHERE id in (" + inClause + ")");
+            PreparedStatement statement = conn.prepareStatement("SELECT * from recipe WHERE id in (" + inClause + ") ORDER BY created_at DESC, id DESC");
             for (int i = 0; i < validatedRecipeIds.size(); i++) {
                 statement.setString(i + 1, validatedRecipeIds.get(i).getValue());
             }
@@ -340,7 +340,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
     public List<Recipe> searchRecipes(List<SearchTag> searchTags) {
         try (Connection conn = this.getConnection()) {
             PreparedStatement statement = conn.prepareStatement(
-                    "SELECT * from recipe WHERE search_vector @@ to_tsquery('english',?)");
+                    "SELECT * from recipe WHERE search_vector @@ to_tsquery('english',?) ORDER BY created_at DESC, id DESC");
 
             statement.setString(1, buildTsQueryClause(searchTags));
             statement.execute();

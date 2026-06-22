@@ -267,6 +267,78 @@ public class PostgresRecipeRepositoryTest {
     }
 
     @Test
+    public void findAllRecipes_ordersByCreatedAtDescending_NewestFirst() throws Exception {
+        final RecipeId firstSaved = recipeRepository.saveNewRecipe(new Recipe("ordering_first_saved", "c", new Recipe.UserId("u"))).getId();
+        final RecipeId secondSaved = recipeRepository.saveNewRecipe(new Recipe("ordering_second_saved", "c", new Recipe.UserId("u"))).getId();
+        final RecipeId thirdSaved = recipeRepository.saveNewRecipe(new Recipe("ordering_third_saved", "c", new Recipe.UserId("u"))).getId();
+
+        // created_at order is deliberately different from insertion order, so a missing ORDER BY would fail.
+        setCreatedAt(firstSaved, "2020-01-01 00:00:00+00");
+        setCreatedAt(thirdSaved, "2021-01-01 00:00:00+00");
+        setCreatedAt(secondSaved, "2022-01-01 00:00:00+00");
+
+        final List<String> names = recipeRepository.findAllRecipes().stream().map(Recipe::getName).toList();
+
+        Assertions.assertThat(names).containsExactly("ordering_second_saved", "ordering_third_saved", "ordering_first_saved");
+    }
+
+    @Test
+    public void searchRecipes_ordersByCreatedAtDescending_NewestFirst() throws Exception {
+        final RecipeId firstSaved = recipeRepository.saveNewRecipe(new Recipe("zzsearchorder one", "c", new Recipe.UserId("u"))).getId();
+        final RecipeId secondSaved = recipeRepository.saveNewRecipe(new Recipe("zzsearchorder two", "c", new Recipe.UserId("u"))).getId();
+        final RecipeId thirdSaved = recipeRepository.saveNewRecipe(new Recipe("zzsearchorder three", "c", new Recipe.UserId("u"))).getId();
+
+        setCreatedAt(firstSaved, "2020-01-01 00:00:00+00");
+        setCreatedAt(thirdSaved, "2021-01-01 00:00:00+00");
+        setCreatedAt(secondSaved, "2022-01-01 00:00:00+00");
+
+        final List<Recipe> found = recipeRepository.searchRecipes(Collections.singletonList(new SearchTag("zzsearchorder")));
+        final List<String> names = found.stream().map(Recipe::getName).toList();
+
+        Assertions.assertThat(names).containsExactly("zzsearchorder two", "zzsearchorder three", "zzsearchorder one");
+    }
+
+    @Test
+    public void findAllRecipes_breaksCreatedAtTiesByIdDescending_Deterministically() throws Exception {
+        final RecipeId a = recipeRepository.saveNewRecipe(new Recipe("tie_a", "c", new Recipe.UserId("u"))).getId();
+        final RecipeId b = recipeRepository.saveNewRecipe(new Recipe("tie_b", "c", new Recipe.UserId("u"))).getId();
+        final RecipeId c = recipeRepository.saveNewRecipe(new Recipe("tie_c", "c", new Recipe.UserId("u"))).getId();
+
+        final String sameInstant = "2023-05-05 12:00:00+00";
+        setCreatedAt(a, sameInstant);
+        setCreatedAt(b, sameInstant);
+        setCreatedAt(c, sameInstant);
+
+        final List<String> actualIds = recipeRepository.findAllRecipes().stream().map(r -> r.getId().getValue()).toList();
+        // Equal created_at -> ordered by id DESC, exactly as the DB itself sorts (collation-correct, no Java guess).
+        final List<String> expectedIdsDesc = idsFromQuery("SELECT id FROM recipe ORDER BY id DESC");
+
+        Assertions.assertThat(actualIds).isEqualTo(expectedIdsDesc);
+        Assertions.assertThat(actualIds).hasSize(3);
+    }
+
+    private void setCreatedAt(final RecipeId id, final String timestamp) throws Exception {
+        try (Connection conn = PostgresTestHelper.buildDataSource().getConnection();
+             PreparedStatement statement = conn.prepareStatement("UPDATE recipe SET created_at = ?::timestamptz WHERE id = ?")) {
+            statement.setString(1, timestamp);
+            statement.setString(2, id.getValue());
+            statement.executeUpdate();
+        }
+    }
+
+    private List<String> idsFromQuery(final String sql) throws Exception {
+        try (Connection conn = PostgresTestHelper.buildDataSource().getConnection();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
+            final ResultSet resultSet = statement.executeQuery();
+            final List<String> ids = new java.util.ArrayList<>();
+            while (resultSet.next()) {
+                ids.add(resultSet.getString("id"));
+            }
+            return ids;
+        }
+    }
+
+    @Test
     @SuppressWarnings("ConstantConditions")
     public void getRecipesById_WorksAsExpected() throws Exception {
         final Recipe recipe1 = new Recipe("getRecipesById_name1", "content1", new Recipe.UserId("userId1"));
