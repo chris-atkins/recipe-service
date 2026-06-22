@@ -41,7 +41,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
                 statement.execute();
                 statement.close();
 
-                insertTags(conn, newId, recipe.getTags());
+                insertTags(conn, newId, recipe.getTags(), recipe.getOwningUserId().getValue());
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
@@ -71,24 +71,27 @@ public class PostgresRecipeRepository implements RecipeRepository {
         return jsonObject;
     }
 
-    private void insertTags(Connection conn, String recipeId, List<String> tags) throws SQLException {
+    private void insertTags(Connection conn, String recipeId, List<String> tags, String userId) throws SQLException {
         if (tags == null || tags.isEmpty()) {
             return;
         }
         Set<String> distinctTags = new LinkedHashSet<>(tags);
-        PreparedStatement statement = conn.prepareStatement("insert into recipe_tag(recipe_id,tag) values(?,?)");
+        PreparedStatement statement = conn.prepareStatement(
+                "INSERT INTO recipe_tag(recipe_id,tag,added_by_user_id) VALUES(?,?,?) ON CONFLICT (recipe_id, tag) DO NOTHING");
         for (String tag : distinctTags) {
             statement.setString(1, recipeId);
             statement.setString(2, tag);
+            statement.setString(3, userId);
             statement.addBatch();
         }
         statement.executeBatch();
         statement.close();
     }
 
-    private void deleteTags(Connection conn, String recipeId) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement("DELETE FROM recipe_tag WHERE recipe_id = ?");
+    private void deleteTagsAddedBy(Connection conn, String recipeId, String userId) throws SQLException {
+        PreparedStatement statement = conn.prepareStatement("DELETE FROM recipe_tag WHERE recipe_id = ? AND added_by_user_id = ?");
         statement.setString(1, recipeId);
+        statement.setString(2, userId);
         statement.execute();
         statement.close();
     }
@@ -220,8 +223,9 @@ public class PostgresRecipeRepository implements RecipeRepository {
                 statement.execute();
                 statement.close();
 
-                deleteTags(conn, recipeToUpdate.getId().getValue());
-                insertTags(conn, recipeToUpdate.getId().getValue(), recipeToUpdate.getTags());
+                final String ownerId = originalRecipe.getOwningUserId().getValue();
+                deleteTagsAddedBy(conn, recipeToUpdate.getId().getValue(), ownerId);
+                insertTags(conn, recipeToUpdate.getId().getValue(), recipeToUpdate.getTags(), ownerId);
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
@@ -390,5 +394,64 @@ public class PostgresRecipeRepository implements RecipeRepository {
             throw new RuntimeException(e);
         }
         return findRecipeById(recipeId);
+    }
+
+    @Override
+    public Recipe addTag(final Recipe.RecipeId recipeId, final String tag, final Recipe.UserId userId) {
+        if (findRecipeById(recipeId) == null) {
+            throw new NoRecipeExistsForIdException(recipeId);
+        }
+        try (Connection conn = this.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement(
+                    "INSERT INTO recipe_tag(recipe_id,tag,added_by_user_id) VALUES (?,?,?) " +
+                            "ON CONFLICT (recipe_id, tag) DO NOTHING"
+            );
+            statement.setString(1, recipeId.getValue());
+            statement.setString(2, tag);
+            statement.setString(3, userId.getValue());
+            statement.execute();
+            statement.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return findRecipeById(recipeId);
+    }
+
+    @Override
+    public boolean removeTag(final Recipe.RecipeId recipeId, final String tag, final Recipe.UserId userId) {
+        try (Connection conn = this.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement(
+                    "DELETE FROM recipe_tag WHERE recipe_id = ? AND tag = ? AND added_by_user_id = ?"
+            );
+            statement.setString(1, recipeId.getValue());
+            statement.setString(2, tag);
+            statement.setString(3, userId.getValue());
+            int rowsDeleted = statement.executeUpdate();
+            statement.close();
+            return rowsDeleted > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<String> findTagsAddedByUser(final Recipe.RecipeId recipeId, final Recipe.UserId userId) {
+        try (Connection conn = this.getConnection()) {
+            PreparedStatement statement = conn.prepareStatement(
+                    "SELECT tag FROM recipe_tag WHERE recipe_id = ? AND added_by_user_id = ?"
+            );
+            statement.setString(1, recipeId.getValue());
+            statement.setString(2, userId.getValue());
+            statement.execute();
+            ResultSet resultSet = statement.getResultSet();
+            List<String> tags = new ArrayList<>();
+            while (resultSet.next()) {
+                tags.add(resultSet.getString("tag"));
+            }
+            statement.close();
+            return tags;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -568,6 +568,95 @@ public class PostgresRecipeRepositoryTest {
         assertThat(findRecipeByName("deleteWorks_name3", recipeListAfterDelete), notNullValue());
     }
 
+    @Test
+    public void addTag_AddsATagAttributedToTheAddingUser() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+
+        recipeRepository.addTag(saved.getId(), "Spicy", new Recipe.UserId("adder1"));
+
+        Assertions.assertThat(recipeRepository.findTagsAddedByUser(saved.getId(), new Recipe.UserId("adder1"))).containsExactly("Spicy");
+        Assertions.assertThat(recipeRepository.findRecipeById(saved.getId()).getTags()).containsExactly("Spicy");
+    }
+
+    @Test
+    public void addTag_ReturnsTheRecipeWithTagsAndRatingsAttached() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+        recipeRepository.rateRecipe(saved.getId(), new Recipe.UserId("rater1"), 4);
+
+        final Recipe tagged = recipeRepository.addTag(saved.getId(), "Spicy", new Recipe.UserId("adder1"));
+
+        Assertions.assertThat(tagged.getTags()).containsExactly("Spicy");
+        Assertions.assertThat(tagged.getRating().getAverage()).isEqualTo(4.0);
+        Assertions.assertThat(tagged.getRating().getCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void addTag_SameTagByADifferentUser_IsANoOp_AndKeepsTheFirstAdder() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+
+        recipeRepository.addTag(saved.getId(), "Spicy", new Recipe.UserId("adder1"));
+        recipeRepository.addTag(saved.getId(), "Spicy", new Recipe.UserId("adder2"));
+
+        Assertions.assertThat(recipeRepository.findTagsAddedByUser(saved.getId(), new Recipe.UserId("adder1"))).containsExactly("Spicy");
+        Assertions.assertThat(recipeRepository.findTagsAddedByUser(saved.getId(), new Recipe.UserId("adder2"))).isEmpty();
+        Assertions.assertThat(countTagRows(saved.getId().getValue())).isEqualTo(1);
+    }
+
+    @Test
+    public void addTag_ForMissingRecipe_ThrowsNoRecipeExists() throws Exception {
+        final RecipeId missingId = new RecipeId(RandomStringUtils.randomAlphanumeric(24));
+        org.junit.jupiter.api.Assertions.assertThrows(NoRecipeExistsForIdException.class,
+                () -> recipeRepository.addTag(missingId, "Spicy", new Recipe.UserId("adder1")));
+    }
+
+    @Test
+    public void removeTag_DeletesOnlyWhenTheAddingUserMatches() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+        recipeRepository.addTag(saved.getId(), "Spicy", new Recipe.UserId("adder1"));
+
+        final boolean removed = recipeRepository.removeTag(saved.getId(), "Spicy", new Recipe.UserId("adder1"));
+
+        Assertions.assertThat(removed).isTrue();
+        Assertions.assertThat(countTagRows(saved.getId().getValue())).isEqualTo(0);
+    }
+
+    @Test
+    public void removeTag_ByADifferentUser_ReturnsFalse_AndLeavesTheTag() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+        recipeRepository.addTag(saved.getId(), "Spicy", new Recipe.UserId("adder1"));
+
+        final boolean removed = recipeRepository.removeTag(saved.getId(), "Spicy", new Recipe.UserId("adder2"));
+
+        Assertions.assertThat(removed).isFalse();
+        Assertions.assertThat(recipeRepository.findTagsAddedByUser(saved.getId(), new Recipe.UserId("adder1"))).containsExactly("Spicy");
+        Assertions.assertThat(countTagRows(saved.getId().getValue())).isEqualTo(1);
+    }
+
+    @Test
+    public void updateRecipe_ByTheOwner_PreservesATagAddedByAnotherUser() throws Exception {
+        final Recipe recipe = new Recipe(null, "name", "content", new Recipe.UserId("owner"), null, "Main Dish", Arrays.asList("OwnerTag"));
+        final Recipe saved = recipeRepository.saveNewRecipe(recipe);
+        recipeRepository.addTag(saved.getId(), "CrowdTag", new Recipe.UserId("adder1"));
+
+        final Recipe recipeToUpdate = new Recipe(saved.getId(), "name", "content", saved.getOwningUserId(), null, "Main Dish", Arrays.asList("OwnerTag", "NewOwnerTag"));
+        recipeRepository.updateRecipe(recipeToUpdate);
+
+        final Recipe found = recipeRepository.findRecipeById(saved.getId());
+        Assertions.assertThat(found.getTags()).containsExactlyInAnyOrder("OwnerTag", "NewOwnerTag", "CrowdTag");
+        Assertions.assertThat(recipeRepository.findTagsAddedByUser(saved.getId(), new Recipe.UserId("adder1"))).containsExactly("CrowdTag");
+    }
+
+    @Test
+    public void findTagsAddedByUser_ReturnsOnlyThatUsersTags() throws Exception {
+        final Recipe saved = recipeRepository.saveNewRecipe(new Recipe("name", "content", new Recipe.UserId("owner")));
+        recipeRepository.addTag(saved.getId(), "Spicy", new Recipe.UserId("adder1"));
+        recipeRepository.addTag(saved.getId(), "Quick", new Recipe.UserId("adder1"));
+        recipeRepository.addTag(saved.getId(), "Vegan", new Recipe.UserId("adder2"));
+
+        Assertions.assertThat(recipeRepository.findTagsAddedByUser(saved.getId(), new Recipe.UserId("adder1"))).containsExactlyInAnyOrder("Spicy", "Quick");
+        Assertions.assertThat(recipeRepository.findTagsAddedByUser(saved.getId(), new Recipe.UserId("adder2"))).containsExactly("Vegan");
+    }
+
     private int countTagRows(final String recipeId) throws Exception {
         try (Connection conn = PostgresTestHelper.buildDataSource().getConnection()) {
             PreparedStatement statement = conn.prepareStatement("SELECT count(*) FROM recipe_tag WHERE recipe_id = ?");

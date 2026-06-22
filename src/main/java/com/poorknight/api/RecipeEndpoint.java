@@ -93,7 +93,15 @@ public class RecipeEndpoint {
 			throw new NotFoundException("No recipe found with id: " + recipeId);
 		}
 
-		return recipeTranslator.toApi(recipe, requestingUserId);
+		return enrich(recipe, requestingUserId);
+	}
+
+	private ApiRecipe enrich(final Recipe recipe, final UserId requestingUserId) {
+		final ApiRecipe apiRecipe = recipeTranslator.toApi(recipe, requestingUserId);
+		apiRecipe.setOwnTags(requestingUserId == null
+				? Collections.emptyList()
+				: recipeRepository.findTagsAddedByUser(recipe.getId(), requestingUserId));
+		return apiRecipe;
 	}
 
 	@GET
@@ -172,6 +180,46 @@ public class RecipeEndpoint {
 		} catch (NoRecipeExistsForIdException e) {
 			throw new NotFoundException(e);
 		}
+	}
+
+	@POST
+	@Timed(name = "postTag")
+	@Path("/{id}/tag")
+	public ApiRecipe postTag(@PathParam("id") final String recipeId, final ApiTagRequest tagRequest, @HeaderParam("RequestingUser") final String requestingUserIdString) {
+		final UserId requestingUserId = recipeTranslator.userIdFor(requestingUserIdString);
+		if (requestingUserId == null) {
+			throw new WebApplicationException("A user id must be in the header to perform this operation.", 401);
+		}
+
+		final String tag = (tagRequest == null) ? null : StringUtils.trimToNull(tagRequest.getTag());
+		if (StringUtils.isBlank(tag)) {
+			throw new WebApplicationException("A tag must not be blank.", 400);
+		}
+
+		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
+		try {
+			final Recipe addedRecipe = recipeRepository.addTag(id, tag, requestingUserId);
+			return enrich(addedRecipe, requestingUserId);
+		} catch (NoRecipeExistsForIdException e) {
+			throw new NotFoundException(e);
+		}
+	}
+
+	@DELETE
+	@Timed(name = "deleteTag")
+	@Path("/{id}/tag")
+	public ApiRecipe deleteTag(@PathParam("id") final String recipeId, @QueryParam("tag") final String tag, @HeaderParam("RequestingUser") final String requestingUserIdString) {
+		final UserId requestingUserId = recipeTranslator.userIdFor(requestingUserIdString);
+		if (requestingUserId == null) {
+			throw new WebApplicationException("A user id must be in the header to perform this operation.", 401);
+		}
+
+		final RecipeId id = recipeTranslator.recipeIdFor(recipeId);
+		final boolean removed = recipeRepository.removeTag(id, tag, requestingUserId);
+		if (!removed) {
+			throw new WebApplicationException("You can only remove a tag you added.", 403);
+		}
+		return enrich(recipeRepository.findRecipeById(id), requestingUserId);
 	}
 
 	@DELETE

@@ -21,5 +21,11 @@ public interface RecipeRepository {
 
     Recipe rateRecipe(Recipe.RecipeId recipeId, Recipe.UserId userId, int rating);
 
+    Recipe addTag(Recipe.RecipeId recipeId, String tag, Recipe.UserId userId);
+
+    boolean removeTag(Recipe.RecipeId recipeId, String tag, Recipe.UserId userId);
+
+    List<String> findTagsAddedByUser(Recipe.RecipeId recipeId, Recipe.UserId userId);
+
     void deleteRecipe(Recipe.RecipeId id);
 }

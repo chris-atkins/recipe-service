@@ -147,7 +147,7 @@ public class RecipeEndpointTest {
 	}
 
 	@Test
-	public void getRecipe_DelegatesToItsCollaborators() throws Exception {
+	public void getRecipe_DelegatesToItsCollaborators_AndEnrichesWithOwnTags() throws Exception {
 		final RecipeId recipeId = new RecipeId("id");
 		final UserId userId = new UserId("user");
 		final Recipe domainRecipe = new Recipe(recipeId, "name", "content", new UserId("user"));
@@ -157,9 +157,26 @@ public class RecipeEndpointTest {
 		when(translator.userIdFor("user")).thenReturn(userId);
 		when(repository.findRecipeById(recipeId)).thenReturn(domainRecipe);
 		when(translator.toApi(domainRecipe, userId)).thenReturn(apiRecipe);
+		when(repository.findTagsAddedByUser(recipeId, userId)).thenReturn(List.of("Spicy"));
 
 		final ApiRecipe results = endpoint.getRecipe("id", "user");
 		assertThat(results).isEqualTo(apiRecipe);
+		assertThat(results.getOwnTags()).containsExactly("Spicy");
+	}
+
+	@Test
+	public void getRecipe_WithNoRequestingUser_HasEmptyOwnTags() throws Exception {
+		final RecipeId recipeId = new RecipeId("id");
+		final Recipe domainRecipe = new Recipe(recipeId, "name", "content", new UserId("user"));
+		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content", false);
+
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(translator.userIdFor(null)).thenReturn(null);
+		when(repository.findRecipeById(recipeId)).thenReturn(domainRecipe);
+		when(translator.toApi(domainRecipe, null)).thenReturn(apiRecipe);
+
+		final ApiRecipe results = endpoint.getRecipe("id", null);
+		assertThat(results.getOwnTags()).isEmpty();
 	}
 
 	@Test
@@ -359,6 +376,147 @@ public class RecipeEndpointTest {
 			fail("expecting exception");
 		} catch (final NotFoundException e) {
 			assertThat(e.getCause()).isEqualTo(repositoryException);
+		}
+	}
+
+	@Test
+	public void postTag_DelegatesToItsCollaborators_AndEnrichesWithOwnTags() throws Exception {
+		final UserId userId = new UserId("user");
+		final RecipeId recipeId = new RecipeId("id");
+		final Recipe addedRecipe = new Recipe(recipeId, "name", "content", new UserId("owner"));
+		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content", false);
+
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.addTag(recipeId, "Spicy", userId)).thenReturn(addedRecipe);
+		when(translator.toApi(addedRecipe, userId)).thenReturn(apiRecipe);
+		when(repository.findTagsAddedByUser(recipeId, userId)).thenReturn(List.of("Spicy"));
+
+		final ApiRecipe results = endpoint.postTag("id", new ApiTagRequest("Spicy"), "user");
+		assertThat(results).isEqualTo(apiRecipe);
+		assertThat(results.getOwnTags()).containsExactly("Spicy");
+	}
+
+	@Test
+	public void postTag_TrimsTheTag() throws Exception {
+		final UserId userId = new UserId("user");
+		final RecipeId recipeId = new RecipeId("id");
+		final Recipe addedRecipe = new Recipe(recipeId, "name", "content", new UserId("owner"));
+		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content", false);
+
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.addTag(recipeId, "Spicy", userId)).thenReturn(addedRecipe);
+		when(translator.toApi(addedRecipe, userId)).thenReturn(apiRecipe);
+		when(repository.findTagsAddedByUser(recipeId, userId)).thenReturn(List.of("Spicy"));
+
+		endpoint.postTag("id", new ApiTagRequest("  Spicy  "), "user");
+
+		verify(repository).addTag(recipeId, "Spicy", userId);
+	}
+
+	@Test
+	public void postTag_Throws401_WhenNullUserIdIsSpecified() throws Exception {
+		try {
+			endpoint.postTag("id", new ApiTagRequest("Spicy"), null);
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void postTag_Throws401_WhenEmptyUserIdIsSpecified() throws Exception {
+		try {
+			endpoint.postTag("id", new ApiTagRequest("Spicy"), "");
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void postTag_Throws400_WhenTagIsBlank() throws Exception {
+		when(translator.userIdFor("user")).thenReturn(new UserId("user"));
+		try {
+			endpoint.postTag("id", new ApiTagRequest("   "), "user");
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(400);
+		}
+	}
+
+	@Test
+	public void postTag_Throws400_WhenTagRequestIsNull() throws Exception {
+		when(translator.userIdFor("user")).thenReturn(new UserId("user"));
+		try {
+			endpoint.postTag("id", null, "user");
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(400);
+		}
+	}
+
+	@Test
+	public void postTag_ThrowsNotFound_WhenRecipeIsMissing() throws Exception {
+		final UserId userId = new UserId("user");
+		final RecipeId recipeId = new RecipeId("id");
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		final NoRecipeExistsForIdException repositoryException = new NoRecipeExistsForIdException(recipeId);
+		when(repository.addTag(recipeId, "Spicy", userId)).thenThrow(repositoryException);
+
+		try {
+			endpoint.postTag("id", new ApiTagRequest("Spicy"), "user");
+			fail("expecting exception");
+		} catch (final NotFoundException e) {
+			assertThat(e.getCause()).isEqualTo(repositoryException);
+		}
+	}
+
+	@Test
+	public void deleteTag_DelegatesToItsCollaborators_AndEnrichesWithOwnTags() throws Exception {
+		final UserId userId = new UserId("user");
+		final RecipeId recipeId = new RecipeId("id");
+		final Recipe foundRecipe = new Recipe(recipeId, "name", "content", new UserId("owner"));
+		final ApiRecipe apiRecipe = new ApiRecipe("id", "name", "content", false);
+
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.removeTag(recipeId, "Spicy", userId)).thenReturn(true);
+		when(repository.findRecipeById(recipeId)).thenReturn(foundRecipe);
+		when(translator.toApi(foundRecipe, userId)).thenReturn(apiRecipe);
+		when(repository.findTagsAddedByUser(recipeId, userId)).thenReturn(Collections.emptyList());
+
+		final ApiRecipe results = endpoint.deleteTag("id", "Spicy", "user");
+		assertThat(results).isEqualTo(apiRecipe);
+		assertThat(results.getOwnTags()).isEmpty();
+	}
+
+	@Test
+	public void deleteTag_Throws401_WhenNullUserIdIsSpecified() throws Exception {
+		try {
+			endpoint.deleteTag("id", "Spicy", null);
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(401);
+		}
+	}
+
+	@Test
+	public void deleteTag_Throws403_WhenTheTagWasNotAddedByTheRequestingUser() throws Exception {
+		final UserId userId = new UserId("user");
+		final RecipeId recipeId = new RecipeId("id");
+		when(translator.userIdFor("user")).thenReturn(userId);
+		when(translator.recipeIdFor("id")).thenReturn(recipeId);
+		when(repository.removeTag(recipeId, "Spicy", userId)).thenReturn(false);
+
+		try {
+			endpoint.deleteTag("id", "Spicy", "user");
+			fail("expecting exception");
+		} catch (final WebApplicationException e) {
+			assertThat(e.getResponse().getStatus()).isEqualTo(403);
+			assertThat(e.getMessage()).isEqualTo("You can only remove a tag you added.");
 		}
 	}
 
